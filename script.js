@@ -2,8 +2,10 @@
 
 // ---- State ----
 const LS_KEY = 'impostor_app_v1';
-const GENRE_COUNT = 16; // adjust if your bitmap uses more
-const ALL_GENRES_MASK = (1n << BigInt(GENRE_COUNT)) - 1n;
+/** @type {string[]} */
+let genres = [];
+let GENRE_COUNT = 0; // computed from loaded genres, max 60
+let ALL_GENRES_MASK = 0n; // computed after loading genres
 
 const PALETTE = [
   '#4C7DFF','#35C759','#FF3B30','#FF9500','#AF52DE','#FF2D55',
@@ -78,6 +80,7 @@ const thinkSeconds = $('#thinkSeconds');
 const revealProgress = $('#revealProgress');
 const revealCounter = $('#revealCounter');
 const revealCard = $('#revealCard');
+const revealBackground = $('#revealBackground');
 const revealCircle = $('#revealCircle');
 const revealName = $('#revealName');
 const revealPullHint = $('#revealPullHint');
@@ -298,13 +301,44 @@ function filterRowsByGenres(rows){
   const m = cfg.genresMask;
   if(m === 0n) return rows;
   // treat full mask as all too
-  if(m === ALL_GENRES_MASK) return rows;
+  if(ALL_GENRES_MASK > 0n && m === ALL_GENRES_MASK) return rows;
   const out = [];
   for(const r of rows){
     const g = (typeof r.genre === 'bigint') ? r.genre : BigInt(r.genre ?? 0);
     if((g & m) !== 0n) out.push(r);
   }
   return out;
+}
+
+// ---- Genres loading ----
+async function loadGenres(){
+  try{
+    const res = await fetch('./genres.json', { cache: 'no-store' });
+    if(!res.ok) throw new Error('Could not fetch genres.json');
+    const data = await res.json();
+    if(!Array.isArray(data)) throw new Error('genres.json must be an array of strings');
+    
+    // Limit to 60 genres (64-bit bitmap constraint)
+    genres = data.slice(0, 60).filter(g => typeof g === 'string' && g.trim().length > 0);
+    GENRE_COUNT = genres.length;
+    ALL_GENRES_MASK = GENRE_COUNT > 0 ? (1n << BigInt(GENRE_COUNT)) - 1n : 0n;
+    
+    // Clear any bits in genresMask beyond the loaded genre count
+    if(GENRE_COUNT > 0 && cfg.genresMask > 0n){
+      cfg.genresMask = cfg.genresMask & ALL_GENRES_MASK;
+    } else if(GENRE_COUNT === 0){
+      cfg.genresMask = 0n;
+    }
+    
+    // Update genre summary if already rendered
+    if(genreSummary) updateGenreSummary();
+  }catch(e){
+    console.error('Failed to load genres.json:', e);
+    // Fallback to empty genres
+    genres = [];
+    GENRE_COUNT = 0;
+    ALL_GENRES_MASK = 0n;
+  }
 }
 
 // ---- Wordbase loading ----
@@ -703,10 +737,11 @@ function renderGenres(){
   for(let i=0;i<GENRE_COUNT;i++){
     const bit = 1n << BigInt(i);
     const checked = (cfg.genresMask & bit) !== 0n;
+    const genreName = genres[i] || `Genre ${i+1}`;
     const row = document.createElement('div');
     row.className = 'genre-item';
     row.innerHTML = `
-      <div class="g">Genre ${i+1}</div>
+      <div class="g">${escapeHtml(genreName)}</div>
       <label class="inline">
         <input type="checkbox" class="hidden" ${checked ? 'checked':''} data-genre="${i}">
         <span class="switch" aria-hidden="true"></span>
@@ -968,10 +1003,12 @@ function renderReveal(){
   revealCounter.textContent = `${revealIndex+1}/${n}`;
   revealName.textContent = p.name;
 
-  // style circle
+  // style circle - use player color like in player view
   const st = playerStyles(p.color);
   revealCircle.style.borderColor = st.border;
   revealCircle.style.background = st.fill;
+  // Set background container color to match player color
+  revealBackground.style.setProperty('--bg', st.fill);
 
   // progress dots
   revealProgress.innerHTML = '';
@@ -981,12 +1018,12 @@ function renderReveal(){
     revealProgress.appendChild(d);
   }
 
-  // secret panel
-  revealSecret.classList.remove('show');
+  // secret panel - always visible behind circle
   btnRevealNext.style.display = 'none';
   revealed = false;
   revealPullHint.textContent = 'Swipe up to reveal';
   revealCard.style.setProperty('--revealY','0px');
+  revealBackground.style.setProperty('--revealY','0px');
 
   // role/word/hint prepared (but hidden)
   const isImp = game.impostors.has(revealIndex);
@@ -1011,7 +1048,6 @@ function renderReveal(){
 function revealNow(){
   if(revealed) return;
   revealed = true;
-  revealSecret.classList.add('show');
   btnRevealNext.style.display = 'block';
   revealPullHint.textContent = 'Pass the device, then tap Next';
 }
@@ -1260,6 +1296,7 @@ $('#btnStart').addEventListener('click', startGame);
     dragging = true;
     currentY = 0;
     revealCard.classList.add('dragging');
+    revealBackground.classList.add('dragging');
   }, { passive:true });
 
   revealCard.addEventListener('pointermove', (ev) => {
@@ -1267,9 +1304,11 @@ $('#btnStart').addEventListener('click', startGame);
     const dy = ev.clientY - startY;
     if(dy > 0) return; // only up
     ev.preventDefault();
-    currentY = clamp(dy, -260, 0);
-    revealCard.style.setProperty('--revealY', currentY + 'px');
-    if(currentY < -140 && !revealed) revealNow();
+    currentY = clamp(dy, -280, 0);
+    const yValue = currentY + 'px';
+    revealCard.style.setProperty('--revealY', yValue);
+    revealBackground.style.setProperty('--revealY', yValue);
+    if(currentY < -120 && !revealed) revealNow();
   }, { passive:false });
 
   function endDrag(){
@@ -1277,11 +1316,10 @@ $('#btnStart').addEventListener('click', startGame);
     dragging = false;
     pid = null;
     revealCard.classList.remove('dragging');
-    if(revealed){
-      revealCard.style.setProperty('--revealY', (-180) + 'px');
-    } else {
-      revealCard.style.setProperty('--revealY', '0px');
-    }
+    revealBackground.classList.remove('dragging');
+    // Always snap back to original position
+    revealCard.style.setProperty('--revealY', '0px');
+    revealBackground.style.setProperty('--revealY', '0px');
   }
   revealCard.addEventListener('pointerup', endDrag, { passive:true });
   revealCard.addEventListener('pointercancel', endDrag, { passive:true });
@@ -1329,6 +1367,8 @@ function renderAll(){
 }
 
 load();
-renderAll();
+loadGenres().then(() => {
+  renderAll();
+});
 loadWordbase();
 
