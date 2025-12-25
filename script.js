@@ -375,11 +375,11 @@ async function loadWordbase(){
     wordbase.rows = rows;
     wordbase.count = rows.length;
     wordbase.loaded = true;
-    wordbaseStatus.innerHTML = `Wordbase loaded: <strong>${wordbase.count.toLocaleString()}</strong> words.`;
+    if(wordbaseStatus) wordbaseStatus.innerHTML = `Wordbase loaded: <strong>${wordbase.count.toLocaleString()}</strong> words.`;
     showToast('Wordbase loaded.', 'ok');
   }catch(e){
     wordbase.loaded = false;
-    wordbaseStatus.innerHTML = `Wordbase load failed. Place <strong>wordbase.tsv</strong> next to this page.`;
+    if(wordbaseStatus) wordbaseStatus.innerHTML = `Wordbase load failed. Place <strong>wordbase.tsv</strong> next to this page.`;
     showToast('Wordbase load failed. See status message.', 'danger');
   }
 }
@@ -1275,8 +1275,40 @@ toggleThink.addEventListener('change', () => {
   save();
 });
 
-thinkMinutes.addEventListener('change', () => save());
-thinkSeconds.addEventListener('change', () => save());
+thinkMinutes.addEventListener('change', () => {
+  // Normalize when minutes change too, in case seconds is out of range
+  const minutes = Number(thinkMinutes.value || 0);
+  const seconds = Number(thinkSeconds.value || 0);
+  const totalSeconds = Math.floor(minutes) * 60 + Math.floor(seconds);
+  
+  if(totalSeconds < 0){
+    thinkMinutes.value = '0';
+    thinkSeconds.value = '0';
+  } else {
+    const newSeconds = totalSeconds % 60;
+    const newMinutes = Math.min(99, Math.floor(totalSeconds / 60));
+    thinkSeconds.value = String(newSeconds);
+    thinkMinutes.value = String(newMinutes);
+  }
+  save();
+});
+
+thinkSeconds.addEventListener('change', () => {
+  const minutes = Number(thinkMinutes.value || 0);
+  const seconds = Number(thinkSeconds.value || 0);
+  const totalSeconds = Math.floor(minutes) * 60 + Math.floor(seconds);
+  
+  if(totalSeconds < 0){
+    thinkMinutes.value = '0';
+    thinkSeconds.value = '0';
+  } else {
+    const newSeconds = totalSeconds % 60;
+    const newMinutes = Math.min(99, Math.floor(totalSeconds / 60));
+    thinkSeconds.value = String(newSeconds);
+    thinkMinutes.value = String(newMinutes);
+  }
+  save();
+});
 
 $('#btnStart').addEventListener('click', startGame);
 
