@@ -198,6 +198,11 @@ input[type="checkbox"].hidden:checked + .switch::after{
   position:relative;
   overscroll-behavior: contain;
   touch-action: pan-y;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.loop-wrap::-webkit-scrollbar{
+  display: none;
 }
 .loop-inner{padding: 14px 0}
 .player-row{
