@@ -1,10 +1,17 @@
 [
-  "Action",
-  "Adventure",
-  "Comedy",
-  "Drama",
-  "Fantasy",
-  "Horror",
-  "Concert"
+    "Alltag & Gegenstände",
+    "Essen & Trinken",
+    "Natur & Tiere",
+    "Orte & Reisen",
+    "Kultur & Kunst",
+    "Sport & Freizeit",
+    "Technik & Digitales",
+    "Wissenschaft & Medizin",
+    "Geschichte & Mythos",
+    "Gesellschaft & Beruf",
+    "Haushalt & Wohnen",
+    "Wetter & Himmel",
+    "Gefühle & Abstraktes",
+    "Feste & Jahreszeiten",
+    "Höhere Mathematik"
 ]
-
