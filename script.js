@@ -1049,7 +1049,7 @@ function revealNow(){
   if(revealed) return;
   revealed = true;
   btnRevealNext.style.display = 'block';
-  revealPullHint.textContent = 'Pass the device, then tap Next';
+  revealPullHint.textContent = 'Pass the device after tapping Next';
 }
 
 function nextReveal(){
@@ -1254,7 +1254,6 @@ document.addEventListener('click', (ev) => {
 
 $('#btnGenres').addEventListener('click', () => { renderGenres(); openModal(modalGenres); });
 $('#btnAddPlayer').addEventListener('click', () => openPlayerModal(null));
-$('#btnQuickAdd').addEventListener('click', () => openPlayerModal(null));
 $('#btnOrder').addEventListener('click', () => { renderOrder(); openModal(modalOrder); });
 
 $('#btnAdvanced').addEventListener('click', () => { renderAdvanced(); openModal(modalAdvanced); });
