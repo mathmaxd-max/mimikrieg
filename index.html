@@ -61,10 +61,23 @@
               <div class="toggle">
                 <div class="label">
                   <div style="font-weight:650">Impostors get hints</div>
-                  <div class="small">If disabled, impostors only see “Impostor”.</div>
+                  <div class="small">If disabled, impostors only see "Impostor".</div>
                 </div>
                 <label class="inline">
                   <input type="checkbox" class="hidden" id="toggleHints" />
+                  <span class="switch" aria-hidden="true"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="row" id="hintSameRow" style="display:none">
+              <div class="toggle">
+                <div class="label">
+                  <div style="font-weight:650">Same hint for all impostors</div>
+                  <div class="small">If disabled, each impostor gets a random hint.</div>
+                </div>
+                <label class="inline">
+                  <input type="checkbox" class="hidden" id="toggleHintSame" />
                   <span class="switch" aria-hidden="true"></span>
                 </label>
               </div>

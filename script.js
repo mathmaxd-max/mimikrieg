@@ -15,6 +15,7 @@ const PALETTE = [
 const DEFAULTS = {
   genresMask: 0n, // 0 => treat as all
   useHints: true,
+  sameHintForAllImpostors: true,
   thinkEnabled: false,
   thinkSeconds: 45,
   impostorCountWeights: null, // computed based on n
@@ -66,6 +67,8 @@ const genreSummary = $('#genreSummary');
 const wordbaseStatus = $('#wordbaseStatus');
 
 const toggleHints = $('#toggleHints');
+const toggleHintSame = $('#toggleHintSame');
+const hintSameRow = $('#hintSameRow');
 const toggleThink = $('#toggleThink');
 const thinkRow = $('#thinkRow');
 const thinkMinutes = $('#thinkMinutes');
@@ -913,11 +916,34 @@ function startGame(){
     }
   }
 
-  const hint = computeHint(row);
+  // Compute hints based on setting
+  let hint = null;
+  const impostorHints = new Map(); // Map<playerIndex, hint>
+  
+  if(cfg.useHints){
+    if(cfg.sameHintForAllImpostors){
+      hint = computeHint(row);
+      // All impostors get the same hint
+      for(const impIdx of impostors){
+        impostorHints.set(impIdx, hint);
+      }
+    } else {
+      // Each impostor gets a random hint
+      for(const impIdx of impostors){
+        impostorHints.set(impIdx, computeHint(row));
+      }
+      // For backward compatibility, store first impostor's hint
+      if(impostors.size > 0){
+        const firstImp = [...impostors][0];
+        hint = impostorHints.get(firstImp) || '';
+      }
+    }
+  }
 
   game = {
     word: secretWord,
-    hint,
+    hint, // kept for backward compatibility
+    impostorHints, // Map<playerIndex, hint>
     startIndex: start,
     impostors, // Set<number>
     alive: new Array(n).fill(true),
@@ -968,7 +994,12 @@ function renderReveal(){
     revealRole.textContent = 'Impostor';
     revealRole.style.color = 'rgba(255,59,48,.92)';
     revealWord.textContent = '';
-    revealHint.textContent = cfg.useHints ? (game.hint ? ('Hint: ' + game.hint) : 'Hint: (none)') : 'Hints are disabled.';
+    if(cfg.useHints){
+      const impHint = game.impostorHints?.get(revealIndex) || game.hint || '';
+      revealHint.textContent = impHint ? ('Hint: ' + impHint) : 'Hint: (none)';
+    } else {
+      revealHint.textContent = 'Hints are disabled.';
+    }
   } else {
     revealRole.textContent = 'Secret word';
     revealRole.style.color = 'rgba(243,245,255,.92)';
@@ -1131,7 +1162,19 @@ function revealEndOverlay(){
   endTitle.textContent = 'Game over';
   const impNames = [...game.impostors].map(i => players[i]?.name ?? '(unknown)');
   const impList = impNames.length ? impNames.join(', ') : '(none)';
-  const hintLine = (cfg.useHints && game.hint) ? `<div class="small" style="margin-top:6px">Hint shown to impostors: <span class="muted">${escapeHtml(game.hint)}</span></div>` : '';
+  // Show hint info in end screen
+  let hintLine = '';
+  if(cfg.useHints){
+    if(cfg.sameHintForAllImpostors && game.hint){
+      hintLine = `<div class="small" style="margin-top:6px">Hint shown to impostors: <span class="muted">${escapeHtml(game.hint)}</span></div>`;
+    } else if(!cfg.sameHintForAllImpostors && game.impostorHints && game.impostorHints.size > 0){
+      const hints = [...game.impostorHints.values()].filter(h => h).map(h => escapeHtml(h));
+      if(hints.length > 0){
+        const uniqueHints = [...new Set(hints)];
+        hintLine = `<div class="small" style="margin-top:6px">Hints shown to impostors: <span class="muted">${uniqueHints.join(', ')}</span></div>`;
+      }
+    }
+  }
   const reasonLine = game.endedReason ? `<div class="small" style="margin-top:6px">End condition: <span class="muted">${escapeHtml(game.endedReason)}</span></div>` : '';
 
   endBody.innerHTML = `
@@ -1180,7 +1223,16 @@ $('#btnOrder').addEventListener('click', () => { renderOrder(); openModal(modalO
 
 $('#btnAdvanced').addEventListener('click', () => { renderAdvanced(); openModal(modalAdvanced); });
 
-toggleHints.addEventListener('change', () => { cfg.useHints = toggleHints.checked; save(); });
+toggleHints.addEventListener('change', () => {
+  cfg.useHints = toggleHints.checked;
+  hintSameRow.style.display = cfg.useHints ? 'block' : 'none';
+  save();
+});
+
+toggleHintSame.addEventListener('change', () => {
+  cfg.sameHintForAllImpostors = toggleHintSame.checked;
+  save();
+});
 
 toggleThink.addEventListener('change', () => {
   cfg.thinkEnabled = toggleThink.checked;
@@ -1261,6 +1313,8 @@ loopWrap.addEventListener('scroll', () => {
 function renderAll(){
   updateGenreSummary();
   toggleHints.checked = cfg.useHints;
+  toggleHintSame.checked = cfg.sameHintForAllImpostors;
+  hintSameRow.style.display = cfg.useHints ? 'block' : 'none';
   toggleThink.checked = cfg.thinkEnabled;
   thinkRow.style.display = cfg.thinkEnabled ? 'block' : 'none';
 
