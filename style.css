@@ -542,6 +542,33 @@ input[type="checkbox"].hidden:checked + .switch::after{
   border-radius: 14px;
   background: rgba(255,255,255,.03);
 }
+.order-item{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding: 10px 10px;
+  border: 1px solid rgba(243,245,255,.10);
+  border-radius: 14px;
+  background: rgba(255,255,255,.03);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+}
+.order-item:active{
+  cursor: grabbing;
+}
+.order-item.dragging{
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+.order-item.drag-over-top{
+  border-top: 2px solid rgba(243,245,255,.5);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.order-item.drag-over-bottom{
+  border-bottom: 2px solid rgba(243,245,255,.5);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
 .genre-item .g{font-weight: 650; font-size: 14px}
 input[type="range"]{width: 100%}
 .kv{display:flex; justify-content:space-between; align-items:center; gap:12px}

@@ -780,7 +780,10 @@ function renderOrder(){
     const p = players[i];
     const st = playerStyles(p.color);
     const row = document.createElement('div');
-    row.className = 'genre-item';
+    row.className = 'order-item';
+    row.draggable = true;
+    row.dataset.playerId = p.id;
+    row.dataset.index = String(i);
     row.innerHTML = `
       <div class="inline" style="gap:12px">
         <div class="player-chip" style="width:52px;height:52px;border-width:3px;border-color:${st.border};background:${st.fill}">
@@ -798,11 +801,97 @@ function renderOrder(){
     `;
     orderBody.appendChild(row);
   }
+  
+  // Attach drag and drop handlers
+  attachDragHandlers();
+  
+  // Keep Up/Down buttons as fallback
   orderBody.querySelectorAll('button[data-up]').forEach(b => {
     b.addEventListener('click', () => movePlayer(b.dataset.up, -1));
   });
   orderBody.querySelectorAll('button[data-down]').forEach(b => {
     b.addEventListener('click', () => movePlayer(b.dataset.down, +1));
+  });
+}
+
+function attachDragHandlers(){
+  const items = orderBody.querySelectorAll('.order-item');
+  let draggedElement = null;
+  let draggedIndex = null;
+  
+  items.forEach((item, index) => {
+    item.addEventListener('dragstart', (e) => {
+      draggedElement = item;
+      draggedIndex = parseInt(item.dataset.index);
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', item.innerHTML);
+      // Set a custom drag image for better visual feedback
+      e.dataTransfer.setDragImage(item, 0, 0);
+    });
+    
+    item.addEventListener('dragend', (e) => {
+      item.classList.remove('dragging');
+      items.forEach(i => i.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom'));
+      draggedElement = null;
+      draggedIndex = null;
+    });
+    
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      if(draggedElement === item) return;
+      
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      const mouseY = e.clientY;
+      
+      items.forEach(i => {
+        i.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+      });
+      
+      if(mouseY < midY){
+        item.classList.add('drag-over-top');
+      } else {
+        item.classList.add('drag-over-bottom');
+      }
+    });
+    
+    item.addEventListener('dragleave', (e) => {
+      item.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+    });
+    
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if(!draggedElement || draggedElement === item) return;
+      
+      const dropIndex = parseInt(item.dataset.index);
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      const mouseY = e.clientY;
+      
+      let targetIndex = dropIndex;
+      if(mouseY > midY){
+        targetIndex = dropIndex + 1;
+      }
+      
+      // Adjust target index if dragging from above
+      if(draggedIndex < targetIndex){
+        targetIndex--;
+      }
+      
+      // Move the player
+      if(draggedIndex !== targetIndex && targetIndex >= 0 && targetIndex < players.length){
+        const [movedPlayer] = players.splice(draggedIndex, 1);
+        players.splice(targetIndex, 0, movedPlayer);
+        save();
+        renderAll();
+        renderOrder();
+      }
+    });
   });
 }
 
