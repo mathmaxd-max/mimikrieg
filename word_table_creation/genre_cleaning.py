@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script to clean CSV files by sorting alphabetically by the first column
-and removing exact duplicate rows.
+and removing duplicate rows based on the first column, averaging the second column.
 """
 
 import csv
@@ -11,7 +11,8 @@ from pathlib import Path
 
 def clean_csv(filename):
     """
-    Sort CSV by first column and remove exact duplicates.
+    Sort CSV by first column and remove duplicates based on first column.
+    When duplicates are found, average the second column values and round to nearest integer.
     
     Args:
         filename: Path to the CSV file to clean
@@ -37,14 +38,25 @@ def clean_csv(filename):
     header = rows[0]
     data_rows = rows[1:]
     
-    # Remove exact duplicates (convert to tuple for set, then back to list)
-    seen = set()
-    unique_rows = []
+    # Group rows by first column (word) and collect difficulty values
+    word_groups = {}
     for row in data_rows:
-        row_tuple = tuple(row)
-        if row_tuple not in seen:
-            seen.add(row_tuple)
-            unique_rows.append(list(row_tuple))
+        if len(row) >= 2:
+            word = row[0]
+            try:
+                difficulty = int(row[1])
+            except (ValueError, IndexError):
+                continue
+            
+            if word not in word_groups:
+                word_groups[word] = []
+            word_groups[word].append(difficulty)
+    
+    # Create unique rows with averaged difficulty
+    unique_rows = []
+    for word, difficulties in word_groups.items():
+        avg_difficulty = round(sum(difficulties) / len(difficulties))
+        unique_rows.append([word, str(avg_difficulty)])
     
     # Sort by first column alphabetically
     unique_rows.sort(key=lambda x: x[0].lower() if x[0] else '')
@@ -55,7 +67,8 @@ def clean_csv(filename):
         writer.writerow(header)
         writer.writerows(unique_rows)
     
-    print(f"Cleaned '{filename}': Removed {len(data_rows) - len(unique_rows)} duplicate(s), "
+    duplicates_removed = len(data_rows) - len(unique_rows)
+    print(f"Cleaned '{filename}': Removed {duplicates_removed} duplicate(s), "
           f"sorted {len(unique_rows)} unique rows alphabetically.")
 
 
