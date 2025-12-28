@@ -582,6 +582,44 @@ input[type="range"]{width: 100%}
   padding: 10px 10px;
 }
 
+/* Hint strength toggles */
+.hint-strength-toggles{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.hint-strength-toggle{
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px solid rgba(243,245,255,.18);
+  background: rgba(255,255,255,.04);
+  color: var(--muted2);
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .16s ease;
+  user-select: none;
+  box-shadow: 0 8px 16px rgba(0,0,0,.22);
+}
+.hint-strength-toggle:hover{
+  border-color: rgba(243,245,255,.35);
+  background: rgba(255,255,255,.08);
+}
+.hint-strength-toggle.active{
+  background: linear-gradient(180deg, rgba(76,125,255,.95), rgba(76,125,255,.72));
+  border-color: rgba(76,125,255,.55);
+  color: rgba(255,255,255,.95);
+  box-shadow: 0 12px 24px rgba(76,125,255,.28);
+}
+.hint-strength-toggle:active{
+  transform: translateY(1px);
+}
+
 /* Toast */
 .toast{
   position: fixed;

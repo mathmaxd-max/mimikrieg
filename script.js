@@ -22,7 +22,9 @@ const DEFAULTS = {
   thinkSeconds: 45,
   impostorCountWeights: null, // computed based on n
   posMode: 'constant', // 'constant' | 'binomial'
-  posP: 0.50
+  posP: 0.50,
+  allowTypeBHints: true,
+  allowedHintStrengths: [true, true, true, true, true] // indexed 1-5, index 0 unused
 };
 
 /** @type {{id:string,name:string,color:string}[]} */
@@ -123,6 +125,9 @@ const posBinomialControls = $('#posBinomialControls');
 const posPSlider = $('#posPSlider');
 const posPLabel = $('#posPLabel');
 
+const toggleTypeBHints = $('#toggleTypeBHints');
+const hintStrengthToggles = $('#hintStrengthToggles');
+
 const modalOrder = $('#modalOrder');
 const orderBody = $('#orderBody');
 
@@ -195,6 +200,11 @@ function load(){
     if(parsed.cfg){
       cfg = { ...structuredClone(DEFAULTS), ...parsed.cfg };
       cfg.genresMask = BigInt(parsed.cfg.genresMask ?? '0');
+      // Ensure hint filtering settings exist with defaults
+      if(typeof cfg.allowTypeBHints !== 'boolean') cfg.allowTypeBHints = DEFAULTS.allowTypeBHints;
+      if(!Array.isArray(cfg.allowedHintStrengths) || cfg.allowedHintStrengths.length !== 5){
+        cfg.allowedHintStrengths = [...DEFAULTS.allowedHintStrengths];
+      }
     }
   }catch(e){
     // ignore
@@ -288,13 +298,37 @@ function pickRandom(arr){
 
 function computeHint(row){
   if(!cfg.useHints) return '';
-  const hints = [];
-  for(let i=0;i<16;i++){
-    const v = row['hint'+i];
-    if(typeof v === 'string' && v.trim().length) hints.push(v.trim());
+  
+  // Parse hints from comma-separated string
+  const hintsStr = row.hints || '';
+  if(!hintsStr.trim()) return '';
+  
+  const hintStrings = hintsStr.split(',').map(h => h.trim()).filter(h => h.length > 0);
+  if(!hintStrings.length) return '';
+  
+  // Filter hints based on settings
+  const filteredHints = [];
+  for(const hintStr of hintStrings){
+    // Parse format: "word~vibe~difficulty"
+    const parts = hintStr.split('~');
+    if(parts.length < 3) continue;
+    
+    const vibe = parts[1];
+    const difficulty = Number(parts[2]);
+    
+    // Filter by type B toggle
+    if(vibe === 'B' && !cfg.allowTypeBHints) continue;
+    
+    // Filter by strength toggles (difficulty 1-5, indexed 1-5 in array)
+    if(difficulty >= 1 && difficulty <= 5){
+      if(!cfg.allowedHintStrengths[difficulty - 1]) continue;
+    }
+    
+    filteredHints.push(hintStr);
   }
-  if(!hints.length) return '';
-  return pickRandom(hints);
+  
+  if(!filteredHints.length) return '';
+  return pickRandom(filteredHints);
 }
 
 function filterRowsByGenres(rows){
@@ -304,8 +338,23 @@ function filterRowsByGenres(rows){
   if(ALL_GENRES_MASK > 0n && m === ALL_GENRES_MASK) return rows;
   const out = [];
   for(const r of rows){
-    const g = (typeof r.genre === 'bigint') ? r.genre : BigInt(r.genre ?? 0);
-    if((g & m) !== 0n) out.push(r);
+    // Parse genre_ids from pipe-separated string (e.g., "1|2|3")
+    const genreIdsStr = r.genre_ids || '';
+    if(!genreIdsStr) continue;
+    const genreIds = genreIdsStr.split('|').map(id => Number(id.trim())).filter(id => !isNaN(id));
+    
+    // Check if any genre_id matches selected genres in mask
+    let matches = false;
+    for(const genreId of genreIds){
+      if(genreId >= 0 && genreId < GENRE_COUNT){
+        const bit = 1n << BigInt(genreId);
+        if((m & bit) !== 0n){
+          matches = true;
+          break;
+        }
+      }
+    }
+    if(matches) out.push(r);
   }
   return out;
 }
@@ -360,12 +409,10 @@ async function loadWordbase(){
       const row = {};
       headers.forEach((h, idx) => {
         const val = (values[idx] || '').trim();
-        // Parse genre as BigInt, hints as strings
-        if(h === 'genre'){
-          row[h] = BigInt(val || 0);
-        } else if(h.startsWith('hint')){
-          row[h] = val;
+        if(h === 'difficulty'){
+          row[h] = Number(val) || 0;
         } else {
+          // Store as strings: word, genre_ids (pipe-separated), hints (comma-separated)
           row[h] = val;
         }
       });
@@ -950,6 +997,25 @@ function renderAdvanced(){
   } else {
     posBinomialControls.style.display = 'none';
   }
+
+  // Hint filtering controls
+  toggleTypeBHints.checked = cfg.allowTypeBHints;
+  
+  // Render hint strength toggles (1-5)
+  hintStrengthToggles.innerHTML = '';
+  for(let i = 1; i <= 5; i++){
+    const toggle = document.createElement('button');
+    toggle.className = 'hint-strength-toggle' + (cfg.allowedHintStrengths[i - 1] ? ' active' : '');
+    toggle.textContent = String(i);
+    toggle.dataset.strength = String(i);
+    toggle.addEventListener('click', () => {
+      const strength = Number(toggle.dataset.strength);
+      cfg.allowedHintStrengths[strength - 1] = !cfg.allowedHintStrengths[strength - 1];
+      toggle.classList.toggle('active');
+      save();
+    });
+    hintStrengthToggles.appendChild(toggle);
+  }
 }
 
 function setPosMode(mode){
@@ -1347,6 +1413,13 @@ $('#btnOrder').addEventListener('click', () => { renderOrder(); openModal(modalO
 
 $('#btnAdvanced').addEventListener('click', () => { renderAdvanced(); openModal(modalAdvanced); });
 
+if(toggleTypeBHints){
+  toggleTypeBHints.addEventListener('change', () => {
+    cfg.allowTypeBHints = toggleTypeBHints.checked;
+    save();
+  });
+}
+
 toggleHints.addEventListener('change', () => {
   cfg.useHints = toggleHints.checked;
   hintSameRow.style.display = cfg.useHints ? 'block' : 'none';
@@ -1480,6 +1553,9 @@ function renderAll(){
   const t = clamp(Number(cfg.thinkSeconds || 0), 0, 3600*10);
   thinkMinutes.value = String(Math.floor(t/60));
   thinkSeconds.value = String(t%60);
+
+  // restore hint filtering settings
+  if(toggleTypeBHints) toggleTypeBHints.checked = cfg.allowTypeBHints;
 
   ensureImpWeights();
   renderPlayerLoop();
