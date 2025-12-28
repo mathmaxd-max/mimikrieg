@@ -23,7 +23,6 @@ const DEFAULTS = {
   impostorCountWeights: null, // computed based on n
   posMode: 'constant', // 'constant' | 'binomial'
   posP: 0.50,
-  allowTypeBHints: true,
   allowedHintStrengths: [true, true, true, true, true] // indexed 1-5, index 0 unused
 };
 
@@ -125,7 +124,6 @@ const posBinomialControls = $('#posBinomialControls');
 const posPSlider = $('#posPSlider');
 const posPLabel = $('#posPLabel');
 
-const toggleTypeBHints = $('#toggleTypeBHints');
 const hintStrengthToggles = $('#hintStrengthToggles');
 
 const modalOrder = $('#modalOrder');
@@ -201,7 +199,6 @@ function load(){
       cfg = { ...structuredClone(DEFAULTS), ...parsed.cfg };
       cfg.genresMask = BigInt(parsed.cfg.genresMask ?? '0');
       // Ensure hint filtering settings exist with defaults
-      if(typeof cfg.allowTypeBHints !== 'boolean') cfg.allowTypeBHints = DEFAULTS.allowTypeBHints;
       if(!Array.isArray(cfg.allowedHintStrengths) || cfg.allowedHintStrengths.length !== 5){
         cfg.allowedHintStrengths = [...DEFAULTS.allowedHintStrengths];
       }
@@ -313,18 +310,19 @@ function computeHint(row){
     const parts = hintStr.split('~');
     if(parts.length < 3) continue;
     
+    const hintWord = parts[0];
     const vibe = parts[1];
     const difficulty = Number(parts[2]);
     
-    // Filter by type B toggle
-    if(vibe === 'B' && !cfg.allowTypeBHints) continue;
+    // Skip type B hints (they are removed during merge, but keep check for safety)
+    if(vibe === 'B') continue;
     
     // Filter by strength toggles (difficulty 1-5, indexed 1-5 in array)
     if(difficulty >= 1 && difficulty <= 5){
       if(!cfg.allowedHintStrengths[difficulty - 1]) continue;
     }
     
-    filteredHints.push(hintStr);
+    filteredHints.push(hintWord);
   }
   
   if(!filteredHints.length) return '';
@@ -998,9 +996,6 @@ function renderAdvanced(){
     posBinomialControls.style.display = 'none';
   }
 
-  // Hint filtering controls
-  toggleTypeBHints.checked = cfg.allowTypeBHints;
-  
   // Render hint strength toggles (1-5)
   hintStrengthToggles.innerHTML = '';
   for(let i = 1; i <= 5; i++){
@@ -1413,13 +1408,6 @@ $('#btnOrder').addEventListener('click', () => { renderOrder(); openModal(modalO
 
 $('#btnAdvanced').addEventListener('click', () => { renderAdvanced(); openModal(modalAdvanced); });
 
-if(toggleTypeBHints){
-  toggleTypeBHints.addEventListener('change', () => {
-    cfg.allowTypeBHints = toggleTypeBHints.checked;
-    save();
-  });
-}
-
 toggleHints.addEventListener('change', () => {
   cfg.useHints = toggleHints.checked;
   hintSameRow.style.display = cfg.useHints ? 'block' : 'none';
@@ -1553,9 +1541,6 @@ function renderAll(){
   const t = clamp(Number(cfg.thinkSeconds || 0), 0, 3600*10);
   thinkMinutes.value = String(Math.floor(t/60));
   thinkSeconds.value = String(t%60);
-
-  // restore hint filtering settings
-  if(toggleTypeBHints) toggleTypeBHints.checked = cfg.allowTypeBHints;
 
   ensureImpWeights();
   renderPlayerLoop();

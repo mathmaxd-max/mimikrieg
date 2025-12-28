@@ -22,9 +22,11 @@ def merge_genre_ids(genre_id_strings):
             all_ids.update(ids)
     return '|'.join(sorted(all_ids, key=lambda x: int(x) if x.isdigit() else 999))
 
-def merge_hints(hint_strings):
-    """Merge hint strings, remove duplicates, and format them"""
+def merge_hints(hint_strings, target_word):
+    """Merge hint strings, remove duplicates, format them, and purge hints that are substrings of the word"""
     all_hints = set()
+    target_word_lower = target_word.lower()
+    
     for hint_str in hint_strings:
         if hint_str:
             # Split by comma to get individual hints
@@ -32,6 +34,17 @@ def merge_hints(hint_strings):
             for hint in hints:
                 if hint:
                     formatted = parse_hint(hint)
+                    # Extract the hint word and vibe (part before first ~ and second ~)
+                    hint_parts = formatted.split('~')
+                    if hint_parts:
+                        hint_word = hint_parts[0].strip()
+                        vibe = hint_parts[1].strip() if len(hint_parts) > 1 else ''
+                        # Skip type B hints
+                        if vibe == 'B':
+                            continue
+                        # Skip if hint word is a substring of the target word (case-insensitive)
+                        if hint_word.lower() in target_word_lower:
+                            continue
                     all_hints.add(formatted)
     return ','.join(sorted(all_hints))
 
@@ -71,7 +84,7 @@ def process_wordbase():
         
         # Merge hints
         hints = [row['hints'] for row in rows if row.get('hints')]
-        merged_hints = merge_hints(hints)
+        merged_hints = merge_hints(hints, word)
         
         processed_rows.append({
             'word': word,
