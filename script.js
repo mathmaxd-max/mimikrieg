@@ -550,10 +550,11 @@ function attachSwipeHandlers(row){
     pointerId = null;
     row.classList.remove('swiping');
     row.querySelector('.swipe-bg').style.opacity = '';
-    const w = row.getBoundingClientRect().width;
-
-    const removeThresh = -Math.min(260, w * 0.45);
-    const editThresh = Math.min(260, w * 0.40);
+    
+    // Use thresholds based on the clamped range (-220 to 220)
+    // Require at least 30% of max swipe distance
+    const removeThresh = -220 * 0.3; // -66px
+    const editThresh = 220 * 0.3;    // 66px
 
     if(dx <= removeThresh){
       // remove
@@ -1178,7 +1179,7 @@ function renderReveal(){
   // role/word/hint prepared (but hidden)
   const isImp = game.impostors.has(revealIndex);
   if(isImp){
-    revealRole.textContent = 'Mimikrieger';
+    revealRole.textContent = 'Mime';
     revealRole.style.color = 'rgba(255,59,48,.92)';
     revealWord.textContent = '';
     if(cfg.useHints){
@@ -1188,10 +1189,10 @@ function renderReveal(){
       revealHint.textContent = 'Hinweise sind deaktiviert.';
     }
   } else {
-    revealRole.textContent = 'Geheimwort';
+    revealRole.textContent = 'Eingeweihter';
     revealRole.style.color = 'rgba(243,245,255,.92)';
     revealWord.textContent = game.word;
-    revealHint.textContent = 'Sagen Sie eine Assoziation, ohne das Wort den Mimikriegern zu verraten.';
+    revealHint.textContent = 'Sagen Sie eine Assoziation, ohne das Wort den Mimen zu verraten.';
   }
 }
 
@@ -1329,11 +1330,11 @@ function checkAutoEnd(){
   const aliveCrew = aliveIdx.length - aliveImp;
 
   if(aliveImp === 0){
-    endGame('Alle Mimikrieger wurden rausgeworfen.');
+    endGame('Alle Mimen wurden rausgeworfen.');
     return;
   }
   if(aliveCrew === aliveImp){
-    endGame('Mimikrieger haben Parität erreicht.');
+    endGame('Mimen haben Parität erreicht.');
     return;
   }
 }
@@ -1352,12 +1353,12 @@ function revealEndOverlay(){
   let hintLine = '';
   if(cfg.useHints){
     if(cfg.sameHintForAllImpostors && game.hint){
-      hintLine = `<div class="small" style="margin-top:6px">Hinweis für Mimikrieger: <span class="muted">${escapeHtml(game.hint)}</span></div>`;
+      hintLine = `<div class="small" style="margin-top:6px">Hinweis für Mimen: <span class="muted">${escapeHtml(game.hint)}</span></div>`;
     } else if(!cfg.sameHintForAllImpostors && game.impostorHints && game.impostorHints.size > 0){
       const hints = [...game.impostorHints.values()].filter(h => h).map(h => escapeHtml(h));
       if(hints.length > 0){
         const uniqueHints = [...new Set(hints)];
-        hintLine = `<div class="small" style="margin-top:6px">Hinweise für Mimikrieger: <span class="muted">${uniqueHints.join(', ')}</span></div>`;
+        hintLine = `<div class="small" style="margin-top:6px">Hinweise für Mimen: <span class="muted">${uniqueHints.join(', ')}</span></div>`;
       }
     }
   }
@@ -1372,7 +1373,7 @@ function revealEndOverlay(){
     </div>
     <div style="height:10px"></div>
     <div class="imp-row" style="padding:14px 14px">
-      <div class="small">Mimikrieger</div>
+      <div class="small">Mimen</div>
       <div style="font-weight:760; font-size:16px; margin-top:6px">${escapeHtml(impList)}</div>
     </div>
   `;
