@@ -110,7 +110,6 @@ const palette = $('#palette');
 const playerPreviewChip = $('#playerPreviewChip');
 const playerPreviewName = $('#playerPreviewName');
 const btnPlayerSave = $('#btnPlayerSave');
-const btnPlayerDelete = $('#btnPlayerDelete');
 
 const modalAdvanced = $('#modalAdvanced');
 const impMaxInfo = $('#impMaxInfo');
@@ -137,7 +136,8 @@ const btnGameOver = $('#btnGameOver');
 const modalRevealEnd = $('#modalRevealEnd');
 const endTitle = $('#endTitle');
 const endBody = $('#endBody');
-const btnContinue = $('#btnContinue');
+const btnNewRound = $('#btnNewRound');
+const btnLobby = $('#btnLobby');
 
 // ---- Utilities ----
 const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
@@ -651,14 +651,12 @@ function openPlayerModal(id){
     playerModalTitle.textContent = 'Spieler hinzufügen';
     playerNameInput.value = '';
     editingColor = randomColor();
-    btnPlayerDelete.style.display = 'none';
   } else {
     const p = players.find(x=>x.id===id);
     if(!p) return;
     playerModalTitle.textContent = 'Spieler bearbeiten';
     playerNameInput.value = p.name;
     editingColor = p.color;
-    btnPlayerDelete.style.display = 'inline-block';
   }
 
   renderPalette();
@@ -666,11 +664,6 @@ function openPlayerModal(id){
   openModal(modalPlayer);
   setTimeout(() => playerNameInput.focus(), 40);
 }
-
-btnPlayerDelete.addEventListener('click', () => {
-  if(editingPlayerId) removePlayer(editingPlayerId);
-  closeModal(modalPlayer);
-});
 
 playerNameInput.addEventListener('input', updatePlayerPreview);
 
@@ -1446,7 +1439,15 @@ btnKick.addEventListener('click', kickSelected);
 $('#btnEndGame').addEventListener('click', () => openModal(modalEnd));
 btnGameOver.addEventListener('click', () => endGame('Manuell beendet.'));
 
-btnContinue.addEventListener('click', () => { closeModal(modalRevealEnd); resetToSetup(); });
+btnNewRound.addEventListener('click', () => { 
+  closeModal(modalRevealEnd); 
+  resetToSetup(); 
+  startGame(); 
+});
+btnLobby.addEventListener('click', () => { 
+  closeModal(modalRevealEnd); 
+  resetToSetup(); 
+});
 
 loopWrap.addEventListener('scroll', () => {
   keepLoopCentered();

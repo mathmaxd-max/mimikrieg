@@ -22,16 +22,6 @@
         <div class="scroll">
           <div class="card">
             <div class="card-head">
-              <div class="h">Genres <span class="pill" id="genreSummary">Alle</span></div>
-              <div class="players-head-actions">
-                <button class="btn ghost" id="btnGenres">Bearbeiten</button>
-              </div>
-            </div>
-            <div class="small">Wenn keine ausgewählt sind, zählt das als "alle".</div>
-          </div>
-
-          <div class="card">
-            <div class="card-head">
               <div class="h">Spieler <span class="pill" id="playerCountPill">0</span></div>
               <div class="players-head-actions">
                 <button class="btn ghost" id="btnOrder">Reihenfolge</button>
@@ -54,6 +44,14 @@
               <div class="players-head-actions">
                 <button class="btn ghost" id="btnAdvanced">Erweitert</button>
               </div>
+            </div>
+
+            <div class="row">
+              <div class="label">
+                <div style="font-weight:650">Genres <span class="pill" id="genreSummary">Alle</span></div>
+                <div class="small">Wenn keine ausgewählt sind, zählt das als "alle".</div>
+              </div>
+              <button class="btn ghost" id="btnGenres">Bearbeiten</button>
             </div>
 
             <div class="row">
@@ -196,7 +194,10 @@
         <div class="sheet">
           <div class="sheet-head">
             <div class="t" id="playerModalTitle">Spieler</div>
-            <button class="btn ghost" data-close="modalPlayer">Schließen</button>
+            <div class="inline" style="gap:8px">
+              <button class="btn primary" id="btnPlayerSave">Speichern</button>
+              <button class="btn ghost" data-close="modalPlayer">Schließen</button>
+            </div>
           </div>
           <div class="sheet-body">
             <div class="small" style="margin-bottom:6px">Name</div>
@@ -211,10 +212,6 @@
                 <div class="name" id="playerPreviewName">Name</div>
               </div>
             </div>
-          </div>
-          <div class="sheet-foot">
-            <button class="btn ghost" id="btnPlayerDelete" style="display:none">Entfernen</button>
-            <button class="btn primary" id="btnPlayerSave">Speichern</button>
           </div>
         </div>
       </div>
@@ -302,14 +299,14 @@
         <div class="sheet">
           <div class="sheet-head">
             <div class="t" id="voteTitle">Abstimmen</div>
-            <button class="btn ghost" data-close="modalVote">Schließen</button>
+            <div class="inline" style="gap:8px">
+              <button class="btn danger" id="btnKick" disabled>Rauswerfen</button>
+              <button class="btn ghost" data-close="modalVote">Schließen</button>
+            </div>
           </div>
           <div class="sheet-body">
             <div class="small" style="margin-bottom:10px">Wählen Sie einen Spieler zum Rauswerfen.</div>
             <div class="genre-list" id="voteList"></div>
-          </div>
-          <div class="sheet-foot">
-            <button class="btn danger" id="btnKick" disabled>Rauswerfen</button>
           </div>
         </div>
       </div>
@@ -331,12 +328,12 @@
         <div class="sheet">
           <div class="sheet-head">
             <div class="t" id="endTitle">Spiel beendet</div>
-            <button class="btn ghost" data-close="modalRevealEnd">Schließen</button>
+            <div class="inline" style="gap:8px">
+              <button class="btn primary" id="btnNewRound">Neue Runde</button>
+              <button class="btn ghost" id="btnLobby">Lobby</button>
+            </div>
           </div>
           <div class="sheet-body" id="endBody"></div>
-          <div class="sheet-foot">
-            <button class="btn primary" id="btnContinue">Fortsetzen</button>
-          </div>
         </div>
       </div>
 

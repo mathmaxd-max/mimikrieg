@@ -108,7 +108,7 @@ main{
 .pill{
   font-size:12px;
   color:var(--muted);
-  padding:6px 10px;
+  padding:3px 10px;
   border:1px solid rgba(243,245,255,.10);
   background: rgba(243,245,255,.04);
   border-radius:999px;
@@ -458,7 +458,7 @@ input[type="checkbox"].hidden:checked + .switch::after{
 .vote{
   margin-top:auto;
   width:100%;
-  padding: 18px 16px;
+  padding: 24px 16px;
   border-radius: 18px;
   border:1px solid rgba(255,59,48,.55);
   background: linear-gradient(180deg, rgba(255,59,48,.92), rgba(255,59,48,.72));
@@ -468,6 +468,17 @@ input[type="checkbox"].hidden:checked + .switch::after{
   font-size: 20px;
 }
 .vote:active{transform: translateY(1px)}
+
+/* Large action buttons - Start, Weiter, Beginnen, Abstimmen */
+#btnStart,
+#btnRevealNext,
+#btnBegin,
+#btnVote{
+  padding: 24px 16px !important;
+  font-size: 20px !important;
+  font-weight: 820 !important;
+  letter-spacing: .3px !important;
+}
 .hidden{display:none !important}
 
 /* Modal / overlay */
@@ -625,7 +636,7 @@ input[type="range"]{width: 100%}
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(18px + var(--safePad));
+  top: calc(70px + var(--safePad));
   z-index: 2000;
   background: rgba(17,21,34,.96);
   border: 1px solid rgba(243,245,255,.14);
@@ -637,7 +648,7 @@ input[type="range"]{width: 100%}
   display:none;
 }
 .toast.show{display:block; animation: toastIn .18s ease-out}
-@keyframes toastIn{from{opacity:0; transform: translateX(-50%) translateY(8px)} to{opacity:1; transform: translateX(-50%) translateY(0)}}
+@keyframes toastIn{from{opacity:0; transform: translateX(-50%) translateY(-8px)} to{opacity:1; transform: translateX(-50%) translateY(0)}}
 .toast .msg{font-size: 13px; color: rgba(243,245,255,.92); line-height:1.35}
 .toast .msg strong{font-weight:760}
 .toast.danger{border-color: rgba(255,59,48,.35)}
