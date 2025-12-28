@@ -1,18 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b0d12" />
-  <title>Impostor</title>
+  <title>Mimikrieg</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app" id="app">
     <div class="topbar">
       <div class="brand">
-        <div class="title">Impostor</div>
-        <div class="sub">A social deduction word game</div>
+        <div class="title">Mimikrieg</div>
+        <div class="sub">Ein soziales Deduktions-Wortspiel</div>
       </div>
     </div>
 
@@ -22,45 +22,45 @@
         <div class="scroll">
           <div class="card">
             <div class="card-head">
-              <div class="h">Genres <span class="pill" id="genreSummary">All</span></div>
+              <div class="h">Genres <span class="pill" id="genreSummary">Alle</span></div>
               <div class="players-head-actions">
-                <button class="btn ghost" id="btnGenres">Edit</button>
+                <button class="btn ghost" id="btnGenres">Bearbeiten</button>
               </div>
             </div>
-            <div class="small">If none are selected, that counts as “all”.</div>
+            <div class="small">Wenn keine ausgewählt sind, zählt das als "alle".</div>
           </div>
 
           <div class="card">
             <div class="card-head">
-              <div class="h">Players <span class="pill" id="playerCountPill">0</span></div>
+              <div class="h">Spieler <span class="pill" id="playerCountPill">0</span></div>
               <div class="players-head-actions">
-                <button class="btn ghost" id="btnOrder">Order</button>
-                <button class="btn ghost" id="btnAddPlayer">Add</button>
+                <button class="btn ghost" id="btnOrder">Reihenfolge</button>
+                <button class="btn ghost" id="btnAddPlayer">Hinzufügen</button>
               </div>
             </div>
 
-            <div class="loop-wrap" id="loopWrap" aria-label="Players list">
+            <div class="loop-wrap" id="loopWrap" aria-label="Spielerliste">
               <div class="loop-inner" id="loopInner"></div>
             </div>
 
             <div class="small" style="margin-top:10px">
-              Swipe left to remove, right to edit. Two-finger pull apart between two consecutive players to insert.
+              Nach links wischen zum Entfernen, nach rechts zum Bearbeiten. Mit zwei Fingern zwischen zwei aufeinanderfolgenden Spielern auseinanderziehen zum Einfügen.
             </div>
           </div>
 
           <div class="card">
             <div class="card-head">
-              <div class="h">Game</div>
+              <div class="h">Spiel</div>
               <div class="players-head-actions">
-                <button class="btn ghost" id="btnAdvanced">Advanced</button>
+                <button class="btn ghost" id="btnAdvanced">Erweitert</button>
               </div>
             </div>
 
             <div class="row">
               <div class="toggle">
                 <div class="label">
-                  <div style="font-weight:650">Impostors get hints</div>
-                  <div class="small">If disabled, impostors only see "Impostor".</div>
+                  <div style="font-weight:650">Mimikrieger erhalten Hinweise</div>
+                  <div class="small">Wenn deaktiviert, sehen Mimikrieger nur "Mimikrieger".</div>
                 </div>
                 <label class="inline">
                   <input type="checkbox" class="hidden" id="toggleHints" />
@@ -72,8 +72,8 @@
             <div class="row" id="hintSameRow" style="display:none">
               <div class="toggle">
                 <div class="label">
-                  <div style="font-weight:650">Same hint for all impostors</div>
-                  <div class="small">If disabled, each impostor gets a random hint.</div>
+                  <div style="font-weight:650">Gleicher Hinweis für alle Mimikrieger</div>
+                  <div class="small">Wenn deaktiviert, erhält jeder Mimikrieger einen zufälligen Hinweis.</div>
                 </div>
                 <label class="inline">
                   <input type="checkbox" class="hidden" id="toggleHintSame" />
@@ -85,8 +85,8 @@
             <div class="row">
               <div class="toggle">
                 <div class="label">
-                  <div style="font-weight:650">Think timer</div>
-                  <div class="small">Timer restarts on tap. Default disabled.</div>
+                  <div style="font-weight:650">Denkzeit-Timer</div>
+                  <div class="small">Timer startet bei Tippen neu. Standardmäßig deaktiviert.</div>
                 </div>
                 <label class="inline">
                   <input type="checkbox" class="hidden" id="toggleThink" />
@@ -98,17 +98,17 @@
             <div class="row" id="thinkRow" style="display:none">
               <div class="inline" style="width:100%">
                 <input class="num" id="thinkMinutes" type="number" min="0" max="99" value="0" inputmode="numeric" />
-                <span class="muted">min</span>
+                <span class="muted">Min</span>
                 <input class="num" id="thinkSeconds" type="number" min="0" max="59" value="45" inputmode="numeric" />
-                <span class="muted">sec</span>
-                <span class="small" style="margin-left:auto">Tap timer to restart</span>
+                <span class="muted">Sek</span>
+                <span class="small" style="margin-left:auto">Timer antippen zum Neustarten</span>
               </div>
-              <div class="small" style="margin-top:6px; padding-left:2px">Total time = 0 means no timer.</div>
+              <div class="small" style="margin-top:6px; padding-left:2px">Gesamtzeit = 0 bedeutet kein Timer.</div>
             </div>
 
             <div class="divider"></div>
 
-            <button class="btn primary wide" id="btnStart">Start</button>
+            <button class="btn primary wide" id="btnStart">Starten</button>
           </div>
         </div>
       </section>
@@ -130,12 +130,12 @@
             <div class="reveal-background" id="revealBackground"></div>
             <div class="reveal-card" id="revealCard">
               <div class="circle" id="revealCircle"><div class="name" id="revealName"></div></div>
-              <div class="pull-hint" id="revealPullHint">Swipe up to reveal</div>
+              <div class="pull-hint" id="revealPullHint">Nach oben wischen zum Aufdecken</div>
             </div>
           </div>
 
           <div class="bottom-btn">
-            <button class="btn primary wide" id="btnRevealNext" style="display:none">Next</button>
+            <button class="btn primary wide" id="btnRevealNext" style="display:none">Weiter</button>
           </div>
         </div>
       </section>
@@ -144,10 +144,10 @@
       <section class="screen" id="screenPrestart">
         <div class="center">
           <div class="circle huge" id="startCircle"><div class="name" id="startName"></div></div>
-          <div class="subtitle"><span id="startName2"></span> begins.</div>
+          <div class="subtitle"><span id="startName2"></span> beginnt.</div>
         </div>
         <div class="bottom-btn">
-          <button class="btn primary wide" id="btnBegin">Begin</button>
+          <button class="btn primary wide" id="btnBegin">Beginnen</button>
         </div>
       </section>
 
@@ -156,16 +156,16 @@
         <div class="play">
           <div class="play-top">
             <div class="small" id="playInfo"></div>
-            <button class="btn ghost" id="btnEndGame">Game end</button>
+            <button class="btn ghost" id="btnEndGame">Spiel beenden</button>
           </div>
 
-          <div class="timer hidden" id="timerPanel" role="button" tabindex="0" aria-label="Think timer (tap to restart)">
-            <div class="timerLabel">Think time</div>
+          <div class="timer hidden" id="timerPanel" role="button" tabindex="0" aria-label="Denkzeit-Timer (tippen zum Neustarten)">
+            <div class="timerLabel">Denkzeit</div>
             <div class="timerValue" id="timerValue">00:45</div>
-            <div class="small">Tap to restart</div>
+            <div class="small">Tippen zum Neustarten</div>
           </div>
 
-          <button class="vote" id="btnVote">Vote</button>
+          <button class="vote" id="btnVote">Abstimmen</button>
         </div>
       </section>
 
@@ -177,15 +177,15 @@
         <div class="sheet">
           <div class="sheet-head">
             <div class="t">Genres</div>
-            <button class="btn ghost" data-close="modalGenres">Close</button>
+            <button class="btn ghost" data-close="modalGenres">Schließen</button>
           </div>
           <div class="sheet-body">
             <div class="grid2" style="margin-bottom:10px">
-              <button class="btn ghost" id="btnSelectAllGenres">Select all</button>
-              <button class="btn ghost" id="btnDeselectAllGenres">Deselect all</button>
+              <button class="btn ghost" id="btnSelectAllGenres">Alle auswählen</button>
+              <button class="btn ghost" id="btnDeselectAllGenres">Alle abwählen</button>
             </div>
             <div class="small" style="margin-bottom:10px">
-              “Deselect all” means “none selected”, which counts as “all” when starting a game.
+              "Alle abwählen" bedeutet "keine ausgewählt", was beim Spielstart als "alle" zählt.
             </div>
             <div class="genre-list" id="genreList"></div>
           </div>
@@ -195,17 +195,17 @@
       <div class="overlay hidden" id="modalPlayer" aria-hidden="true">
         <div class="sheet">
           <div class="sheet-head">
-            <div class="t" id="playerModalTitle">Player</div>
-            <button class="btn ghost" data-close="modalPlayer">Close</button>
+            <div class="t" id="playerModalTitle">Spieler</div>
+            <button class="btn ghost" data-close="modalPlayer">Schließen</button>
           </div>
           <div class="sheet-body">
             <div class="small" style="margin-bottom:6px">Name</div>
-            <input class="input" id="playerNameInput" maxlength="24" placeholder="Player name" />
+            <input class="input" id="playerNameInput" maxlength="24" placeholder="Spielername" />
             <div style="height:12px"></div>
-            <div class="small" style="margin-bottom:6px">Color</div>
+            <div class="small" style="margin-bottom:6px">Farbe</div>
             <div class="palette" id="palette"></div>
             <div style="height:12px"></div>
-            <div class="small">Preview</div>
+            <div class="small">Vorschau</div>
             <div style="display:flex; justify-content:center; padding: 14px 0 2px">
               <div class="player-chip" id="playerPreviewChip" style="width:92px;height:92px">
                 <div class="name" id="playerPreviewName">Name</div>
@@ -213,8 +213,8 @@
             </div>
           </div>
           <div class="sheet-foot">
-            <button class="btn ghost" id="btnPlayerDelete" style="display:none">Remove</button>
-            <button class="btn primary" id="btnPlayerSave">Save</button>
+            <button class="btn ghost" id="btnPlayerDelete" style="display:none">Entfernen</button>
+            <button class="btn primary" id="btnPlayerSave">Speichern</button>
           </div>
         </div>
       </div>
@@ -222,35 +222,35 @@
       <div class="overlay hidden" id="modalAdvanced" aria-hidden="true">
         <div class="sheet">
           <div class="sheet-head">
-            <div class="t">Advanced</div>
-            <button class="btn ghost" data-close="modalAdvanced">Close</button>
+            <div class="t">Erweitert</div>
+            <button class="btn ghost" data-close="modalAdvanced">Schließen</button>
           </div>
           <div class="sheet-body">
             <div class="kv">
-              <div class="k">Impostor count distribution</div>
+              <div class="k">Mimikrieger-Anzahl-Verteilung</div>
               <div class="v" id="impMaxInfo">max: 0</div>
             </div>
             <div class="small" style="margin:8px 0 10px">
-              Slider values are normalized into probabilities. Default: p(1)=90%, p(2)=10%.
+              Schiebereglerwerte werden in Wahrscheinlichkeiten normalisiert. Standard: p(1)=90%, p(2)=10%.
             </div>
             <div class="imp-rows" id="impCountRows"></div>
 
             <div class="divider"></div>
 
             <div class="kv">
-              <div class="k">Impostor position relative to start</div>
+              <div class="k">Mimikrieger-Position relativ zum Start</div>
               <div class="v" id="posModeInfo"></div>
             </div>
             <div class="small" style="margin:8px 0 10px">
-              “Constant” means uniform offsets. “Binomial” uses your p as described in your specification.
+              "Konstant" bedeutet gleichmäßige Versätze. "Binomial" verwendet Ihr p wie in Ihrer Spezifikation beschrieben.
             </div>
             <div class="imp-row">
               <div class="row" style="padding:0; border:none">
                 <div class="inline">
-                  <button class="btn ghost" id="btnPosConstant">Constant</button>
+                  <button class="btn ghost" id="btnPosConstant">Konstant</button>
                   <button class="btn ghost" id="btnPosBinomial">Binomial</button>
                 </div>
-                <div class="pill" id="posModePill">Constant</div>
+                <div class="pill" id="posModePill">Konstant</div>
               </div>
               <div id="posBinomialControls" style="margin-top:10px; display:none">
                 <div class="kv">
@@ -258,29 +258,29 @@
                   <div class="v" id="posPLabel">50%</div>
                 </div>
                 <input type="range" id="posPSlider" min="1" max="99" value="50" step="1" />
-                <div class="small" style="margin-top:6px">Range: 1%–99%</div>
+                <div class="small" style="margin-top:6px">Bereich: 1%–99%</div>
               </div>
             </div>
 
             <div class="divider"></div>
 
             <div class="kv">
-              <div class="k">During game</div>
-              <div class="v">Auto-end checks</div>
+              <div class="k">Während des Spiels</div>
+              <div class="v">Automatische Endprüfungen</div>
             </div>
             <div class="small" style="margin-top:8px">
-              The app automatically ends if all impostors are kicked, or if remaining impostors equals remaining non‑impostors.
+              Die App endet automatisch, wenn alle Mimikrieger rausgeworfen wurden, oder wenn die verbleibenden Mimikrieger den verbleibenden Nicht-Mimikriegern entsprechen.
             </div>
 
             <div class="divider"></div>
 
             <div class="kv">
-              <div class="k">Advanced Impostor Hints Settings</div>
+              <div class="k">Erweiterte Mimikrieger-Hinweise-Einstellungen</div>
             </div>
             <div class="row" style="padding:8px 4px">
               <div class="label">
-                <div style="font-weight:650; margin-bottom:8px">Hint strength</div>
-                <div class="small">Select which difficulty levels (1-5) are allowed for hints.</div>
+                <div style="font-weight:650; margin-bottom:8px">Hinweisstärke</div>
+                <div class="small">Wählen Sie, welche Schwierigkeitsgrade (1-5) für Hinweise erlaubt sind.</div>
               </div>
               <div class="hint-strength-toggles" id="hintStrengthToggles"></div>
             </div>
@@ -291,8 +291,8 @@
       <div class="overlay hidden centered" id="modalOrder" aria-hidden="true">
         <div class="sheet">
           <div class="sheet-head">
-            <div class="t">Player order</div>
-            <button class="btn ghost" data-close="modalOrder">Close</button>
+            <div class="t">Spielerreihenfolge</div>
+            <button class="btn ghost" data-close="modalOrder">Schließen</button>
           </div>
           <div class="sheet-body" id="orderBody"></div>
         </div>
@@ -301,15 +301,15 @@
       <div class="overlay hidden centered" id="modalVote" aria-hidden="true">
         <div class="sheet">
           <div class="sheet-head">
-            <div class="t" id="voteTitle">Vote</div>
-            <button class="btn ghost" data-close="modalVote">Close</button>
+            <div class="t" id="voteTitle">Abstimmen</div>
+            <button class="btn ghost" data-close="modalVote">Schließen</button>
           </div>
           <div class="sheet-body">
-            <div class="small" style="margin-bottom:10px">Select a player to vote out.</div>
+            <div class="small" style="margin-bottom:10px">Wählen Sie einen Spieler zum Rauswerfen.</div>
             <div class="genre-list" id="voteList"></div>
           </div>
           <div class="sheet-foot">
-            <button class="btn danger" id="btnKick" disabled>Kick</button>
+            <button class="btn danger" id="btnKick" disabled>Rauswerfen</button>
           </div>
         </div>
       </div>
@@ -317,12 +317,12 @@
       <div class="overlay hidden centered" id="modalEnd" aria-hidden="true">
         <div class="sheet">
           <div class="sheet-head">
-            <div class="t">Game end</div>
-            <button class="btn ghost" data-close="modalEnd">Close</button>
+            <div class="t">Spiel beenden</div>
+            <button class="btn ghost" data-close="modalEnd">Schließen</button>
           </div>
           <div class="sheet-body">
-            <div class="small" style="margin-bottom:10px">This will end the game and reveal the word and impostors.</div>
-            <button class="btn danger wide" id="btnGameOver">Game over</button>
+            <div class="small" style="margin-bottom:10px">Dies beendet das Spiel und zeigt das Wort und die Mimikrieger.</div>
+            <button class="btn danger wide" id="btnGameOver">Spiel beendet</button>
           </div>
         </div>
       </div>
@@ -330,12 +330,12 @@
       <div class="overlay hidden centered" id="modalRevealEnd" aria-hidden="true">
         <div class="sheet">
           <div class="sheet-head">
-            <div class="t" id="endTitle">Game over</div>
-            <button class="btn ghost" data-close="modalRevealEnd">Close</button>
+            <div class="t" id="endTitle">Spiel beendet</div>
+            <button class="btn ghost" data-close="modalRevealEnd">Schließen</button>
           </div>
           <div class="sheet-body" id="endBody"></div>
           <div class="sheet-foot">
-            <button class="btn primary" id="btnContinue">Continue</button>
+            <button class="btn primary" id="btnContinue">Fortsetzen</button>
           </div>
         </div>
       </div>

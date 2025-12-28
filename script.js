@@ -1,7 +1,7 @@
 // ---- Wordbase loading (TSV format) ----
 
 // ---- State ----
-const LS_KEY = 'impostor_app_v1';
+const LS_KEY = 'mimikrieg_app_v1';
 /** @type {string[]} */
 let genres = [];
 let GENRE_COUNT = 0; // computed from loaded genres, max 60
@@ -224,13 +224,13 @@ function closeModal(el){
 
 function updateGenreSummary(){
   const m = cfg.genresMask;
-  if(m === 0n) { genreSummary.textContent = 'All'; return; }
+  if(m === 0n) { genreSummary.textContent = 'Alle'; return; }
   let count = 0;
   for(let i=0;i<GENRE_COUNT;i++){
     if(m & (1n<<BigInt(i))) count++;
   }
-  if(count === GENRE_COUNT) genreSummary.textContent = 'All';
-  else genreSummary.textContent = `${count} selected`;
+  if(count === GENRE_COUNT) genreSummary.textContent = 'Alle';
+  else genreSummary.textContent = `${count} ausgewählt`;
 }
 
 function ensureImpWeights(){
@@ -420,12 +420,12 @@ async function loadWordbase(){
     wordbase.rows = rows;
     wordbase.count = rows.length;
     wordbase.loaded = true;
-    if(wordbaseStatus) wordbaseStatus.innerHTML = `Wordbase loaded: <strong>${wordbase.count.toLocaleString()}</strong> words.`;
-    showToast('Wordbase loaded.', 'ok');
+    if(wordbaseStatus) wordbaseStatus.innerHTML = `Wortbasis geladen: <strong>${wordbase.count.toLocaleString()}</strong> Wörter.`;
+    showToast('Wortbasis geladen.', 'ok');
   }catch(e){
     wordbase.loaded = false;
-    if(wordbaseStatus) wordbaseStatus.innerHTML = `Wordbase load failed. Place <strong>wordbase.tsv</strong> next to this page.`;
-    showToast('Wordbase load failed. See status message.', 'danger');
+    if(wordbaseStatus) wordbaseStatus.innerHTML = `Wortbasis-Laden fehlgeschlagen. Platzieren Sie <strong>wordbase.tsv</strong> neben dieser Seite.`;
+    showToast('Wortbasis-Laden fehlgeschlagen. Siehe Statusmeldung.', 'danger');
   }
 }
 
@@ -439,7 +439,7 @@ function renderPlayerLoop(){
   if(players.length === 0){
     const wrap = document.createElement('div');
     wrap.className = 'add-inline';
-    wrap.innerHTML = `<button class="add-circle" id="btnAddInline" aria-label="Add player">+</button>`;
+    wrap.innerHTML = `<button class="add-circle" id="btnAddInline" aria-label="Spieler hinzufügen">+</button>`;
     loopInner.appendChild(wrap);
     requestAnimationFrame(() => {
       const b = $('#btnAddInline');
@@ -466,8 +466,8 @@ function renderPlayerLoop(){
     const st = playerStyles(p.color);
     row.innerHTML = `
       <div class="swipe-bg">
-        <div class="left">Remove</div>
-        <div class="right">Edit</div>
+        <div class="left">Entfernen</div>
+        <div class="right">Bearbeiten</div>
       </div>
       <div class="player-chip" style="border-color:${st.border}; background:${st.fill}">
         <div class="name">${escapeHtml(p.name)}</div>
@@ -657,7 +657,7 @@ function randomColor(){
 }
 
 function nextDefaultName(){
-  const base = 'Player';
+  const base = 'Spieler';
   let i = players.length + 1;
   const names = new Set(players.map(p=>p.name.trim().toLowerCase()));
   while(names.has((base+' '+i).toLowerCase())) i++;
@@ -670,7 +670,7 @@ function addPlayerAt(index){
   ensureImpWeights();
   save();
   renderAll();
-  showToast('Player added.', 'ok');
+  showToast('Spieler hinzugefügt.', 'ok');
 }
 
 function insertPlayerAfter(baseIndex){
@@ -678,7 +678,7 @@ function insertPlayerAfter(baseIndex){
   addPlayerAt(idx);
   // open edit immediately for convenience
   openPlayerModal(players[idx]?.id);
-  showToast('Inserted a player.', 'ok');
+  showToast('Spieler eingefügt.', 'ok');
 }
 
 function removePlayer(id){
@@ -689,7 +689,7 @@ function removePlayer(id){
   ensureImpWeights();
   save();
   renderAll();
-  showToast('Player removed.', 'warn');
+  showToast('Spieler entfernt.', 'warn');
 }
 
 // ---- Player modal ----
@@ -724,14 +724,14 @@ function openPlayerModal(id){
   const isNew = (id == null);
 
   if(isNew){
-    playerModalTitle.textContent = 'Add player';
+    playerModalTitle.textContent = 'Spieler hinzufügen';
     playerNameInput.value = '';
     editingColor = randomColor();
     btnPlayerDelete.style.display = 'none';
   } else {
     const p = players.find(x=>x.id===id);
     if(!p) return;
-    playerModalTitle.textContent = 'Edit player';
+    playerModalTitle.textContent = 'Spieler bearbeiten';
     playerNameInput.value = p.name;
     editingColor = p.color;
     btnPlayerDelete.style.display = 'inline-block';
@@ -753,7 +753,7 @@ playerNameInput.addEventListener('input', updatePlayerPreview);
 btnPlayerSave.addEventListener('click', () => {
   const name = playerNameInput.value.trim();
   if(!name){
-    showToast('Name must be non‑empty.', 'danger');
+    showToast('Name darf nicht leer sein.', 'danger');
     playerNameInput.focus();
     return;
   }
@@ -773,7 +773,7 @@ btnPlayerSave.addEventListener('click', () => {
   save();
   renderAll();
   closeModal(modalPlayer);
-  showToast('Saved.', 'ok');
+  showToast('Gespeichert.', 'ok');
 });
 
 // ---- Genres modal ----
@@ -818,7 +818,7 @@ $('#btnDeselectAllGenres').addEventListener('click', () => {
 function renderOrder(){
   orderBody.innerHTML = '';
   if(players.length === 0){
-    orderBody.innerHTML = `<div class="small">No players yet.</div>`;
+    orderBody.innerHTML = `<div class="small">Noch keine Spieler.</div>`;
     return;
   }
   for(let i=0;i<players.length;i++){
@@ -840,8 +840,8 @@ function renderOrder(){
         </div>
       </div>
       <div class="inline">
-        <button class="btn ghost" ${i===0?'disabled':''} data-up="${p.id}">Up</button>
-        <button class="btn ghost" ${i===players.length-1?'disabled':''} data-down="${p.id}">Down</button>
+        <button class="btn ghost" ${i===0?'disabled':''} data-up="${p.id}">Hoch</button>
+        <button class="btn ghost" ${i===players.length-1?'disabled':''} data-down="${p.id}">Runter</button>
       </div>
     `;
     orderBody.appendChild(row);
@@ -987,7 +987,7 @@ function renderAdvanced(){
   }
 
   // Position mode controls
-  posModePill.textContent = (cfg.posMode === 'binomial') ? 'Binomial' : 'Constant';
+  posModePill.textContent = (cfg.posMode === 'binomial') ? 'Binomial' : 'Konstant';
   if(cfg.posMode === 'binomial'){
     posBinomialControls.style.display = 'block';
     posPSlider.value = String(Math.round(cfg.posP*100));
@@ -1038,11 +1038,11 @@ function onCloseAdvanced(){
 // ---- Game flow ----
 function startGame(){
   if(players.length < 2){
-    showToast('Add at least 2 players.', 'danger');
+    showToast('Mindestens 2 Spieler hinzufügen.', 'danger');
     return;
   }
   if(!wordbase.loaded || !wordbase.count){
-    showToast('Wordbase not loaded. Check wordbase.tsv.', 'danger');
+    showToast('Wortbasis nicht geladen. Überprüfen Sie wordbase.tsv.', 'danger');
     return;
   }
 
@@ -1061,13 +1061,13 @@ function startGame(){
   // choose word
   const eligible = filterRowsByGenres(wordbase.rows);
   if(!eligible.length){
-    showToast('No words match the selected genres.', 'danger');
+    showToast('Keine Wörter entsprechen den ausgewählten Genres.', 'danger');
     return;
   }
   const row = pickRandom(eligible);
   const secretWord = String(row.word ?? '').trim();
   if(!secretWord){
-    showToast('Selected word is empty. Check wordbase.', 'danger');
+    showToast('Ausgewähltes Wort ist leer. Überprüfen Sie die Wortbasis.', 'danger');
     return;
   }
 
@@ -1171,27 +1171,27 @@ function renderReveal(){
   // secret panel - always visible behind circle
   btnRevealNext.style.display = 'none';
   revealed = false;
-  revealPullHint.textContent = 'Swipe up to reveal';
+  revealPullHint.textContent = 'Nach oben wischen zum Aufdecken';
   revealCard.style.setProperty('--revealY','0px');
   revealBackground.style.setProperty('--revealY','0px');
 
   // role/word/hint prepared (but hidden)
   const isImp = game.impostors.has(revealIndex);
   if(isImp){
-    revealRole.textContent = 'Impostor';
+    revealRole.textContent = 'Mimikrieger';
     revealRole.style.color = 'rgba(255,59,48,.92)';
     revealWord.textContent = '';
     if(cfg.useHints){
       const impHint = game.impostorHints?.get(revealIndex) || game.hint || '';
-      revealHint.textContent = impHint ? ('Hint: ' + impHint) : 'Hint: (none)';
+      revealHint.textContent = impHint ? ('Hinweis: ' + impHint) : 'Hinweis: (keine)';
     } else {
-      revealHint.textContent = 'Hints are disabled.';
+      revealHint.textContent = 'Hinweise sind deaktiviert.';
     }
   } else {
-    revealRole.textContent = 'Secret word';
+    revealRole.textContent = 'Geheimwort';
     revealRole.style.color = 'rgba(243,245,255,.92)';
     revealWord.textContent = game.word;
-    revealHint.textContent = 'Say an association without revealing the word to impostors.';
+    revealHint.textContent = 'Sagen Sie eine Assoziation, ohne das Wort den Mimikriegern zu verraten.';
   }
 }
 
@@ -1199,7 +1199,7 @@ function revealNow(){
   if(revealed) return;
   revealed = true;
   btnRevealNext.style.display = 'block';
-  revealPullHint.textContent = 'Pass the device after tapping Next';
+  revealPullHint.textContent = 'Gerät nach Tippen auf Weiter weitergeben';
 }
 
 function nextReveal(){
@@ -1225,7 +1225,7 @@ function enterPrestart(){
 function enterPlay(){
   setActiveScreen('#screenPlay');
   const p = players[game.startIndex];
-  playInfo.textContent = `Starting player: ${p.name}`;
+  playInfo.textContent = `Startspieler: ${p.name}`;
   if(cfg.thinkEnabled && cfg.thinkSeconds > 0){
     timerPanel.classList.remove('hidden');
     timerRemaining = cfg.thinkSeconds;
@@ -1273,7 +1273,7 @@ function restartTimer(){
 function openVote(){
   voteSelectedId = null;
   btnKick.disabled = true;
-  voteTitle.textContent = 'Vote';
+  voteTitle.textContent = 'Abstimmen';
   voteList.innerHTML = '';
 
   for(const p of players){
@@ -1291,10 +1291,10 @@ function openVote(){
         </div>
         <div>
           <div style="font-weight:750">${escapeHtml(p.name)}</div>
-          <div class="small">${alive ? 'in game' : 'kicked out'}</div>
+          <div class="small">${alive ? 'im Spiel' : 'rausgeworfen'}</div>
         </div>
       </div>
-      <button class="btn ghost" ${alive ? '' : 'disabled'} data-pick="${p.id}">Select</button>
+      <button class="btn ghost" ${alive ? '' : 'disabled'} data-pick="${p.id}">Auswählen</button>
     `;
     voteList.appendChild(row);
   }
@@ -1303,9 +1303,9 @@ function openVote(){
     b.addEventListener('click', () => {
       voteSelectedId = b.dataset.pick;
       btnKick.disabled = false;
-      voteTitle.textContent = 'Kick';
+      voteTitle.textContent = 'Rauswerfen';
       // visual selection
-      voteList.querySelectorAll('button[data-pick]').forEach(x => x.textContent = (x.dataset.pick===voteSelectedId) ? 'Selected' : 'Select');
+      voteList.querySelectorAll('button[data-pick]').forEach(x => x.textContent = (x.dataset.pick===voteSelectedId) ? 'Ausgewählt' : 'Auswählen');
     });
   });
 
@@ -1319,7 +1319,7 @@ function kickSelected(){
   if(!game.alive[idx]) return;
   game.alive[idx] = false;
   closeModal(modalVote);
-  showToast(`${players[idx].name} was kicked.`, 'warn');
+  showToast(`${players[idx].name} wurde rausgeworfen.`, 'warn');
   checkAutoEnd();
 }
 
@@ -1329,11 +1329,11 @@ function checkAutoEnd(){
   const aliveCrew = aliveIdx.length - aliveImp;
 
   if(aliveImp === 0){
-    endGame('All impostors were kicked.');
+    endGame('Alle Mimikrieger wurden rausgeworfen.');
     return;
   }
   if(aliveCrew === aliveImp){
-    endGame('Impostors reached parity.');
+    endGame('Mimikrieger haben Parität erreicht.');
     return;
   }
 }
@@ -1345,34 +1345,34 @@ function endGame(reason){
 
 function revealEndOverlay(){
   closeModal(modalEnd);
-  endTitle.textContent = 'Game over';
-  const impNames = [...game.impostors].map(i => players[i]?.name ?? '(unknown)');
-  const impList = impNames.length ? impNames.join(', ') : '(none)';
+  endTitle.textContent = 'Spiel beendet';
+  const impNames = [...game.impostors].map(i => players[i]?.name ?? '(unbekannt)');
+  const impList = impNames.length ? impNames.join(', ') : '(keine)';
   // Show hint info in end screen
   let hintLine = '';
   if(cfg.useHints){
     if(cfg.sameHintForAllImpostors && game.hint){
-      hintLine = `<div class="small" style="margin-top:6px">Hint shown to impostors: <span class="muted">${escapeHtml(game.hint)}</span></div>`;
+      hintLine = `<div class="small" style="margin-top:6px">Hinweis für Mimikrieger: <span class="muted">${escapeHtml(game.hint)}</span></div>`;
     } else if(!cfg.sameHintForAllImpostors && game.impostorHints && game.impostorHints.size > 0){
       const hints = [...game.impostorHints.values()].filter(h => h).map(h => escapeHtml(h));
       if(hints.length > 0){
         const uniqueHints = [...new Set(hints)];
-        hintLine = `<div class="small" style="margin-top:6px">Hints shown to impostors: <span class="muted">${uniqueHints.join(', ')}</span></div>`;
+        hintLine = `<div class="small" style="margin-top:6px">Hinweise für Mimikrieger: <span class="muted">${uniqueHints.join(', ')}</span></div>`;
       }
     }
   }
-  const reasonLine = game.endedReason ? `<div class="small" style="margin-top:6px">End condition: <span class="muted">${escapeHtml(game.endedReason)}</span></div>` : '';
+  const reasonLine = game.endedReason ? `<div class="small" style="margin-top:6px">Endbedingung: <span class="muted">${escapeHtml(game.endedReason)}</span></div>` : '';
 
   endBody.innerHTML = `
     <div class="imp-row" style="padding:14px 14px">
-      <div class="small">Secret word</div>
+      <div class="small">Geheimwort</div>
       <div style="font-weight:860; font-size:28px; margin-top:4px">${escapeHtml(game.word)}</div>
       ${hintLine}
       ${reasonLine}
     </div>
     <div style="height:10px"></div>
     <div class="imp-row" style="padding:14px 14px">
-      <div class="small">Impostors</div>
+      <div class="small">Mimikrieger</div>
       <div style="font-weight:760; font-size:16px; margin-top:6px">${escapeHtml(impList)}</div>
     </div>
   `;
@@ -1387,7 +1387,7 @@ function resetToSetup(){
   stopTimer();
   document.body.classList.remove('timeout');
   setActiveScreen('#screenSetup');
-  showToast('Ready for the next round.', 'ok');
+  showToast('Bereit für die nächste Runde.', 'ok');
 }
 
 // ---- Event wiring ----
@@ -1520,7 +1520,7 @@ $('#btnVote').addEventListener('click', () => {
 btnKick.addEventListener('click', kickSelected);
 
 $('#btnEndGame').addEventListener('click', () => openModal(modalEnd));
-btnGameOver.addEventListener('click', () => endGame('Ended manually.'));
+btnGameOver.addEventListener('click', () => endGame('Manuell beendet.'));
 
 btnContinue.addEventListener('click', () => { closeModal(modalRevealEnd); resetToSetup(); });
 
