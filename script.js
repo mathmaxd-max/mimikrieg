@@ -45,8 +45,6 @@ let revealed = false;
 let timerInterval = null;
 let timerRemaining = 0;
 
-// Pinch insert detection
-let pinch = { active:false, p1:null, p2:null, startDist:0, fired:false, baseA:null, baseB:null, startYDiff:0 };
 
 // Vote
 let voteSelectedId = null;
@@ -580,74 +578,6 @@ function attachSwipeHandlers(row){
   }, { passive:true });
 }
 
-// ---- Pinch insert between consecutive players ----
-loopWrap.addEventListener('pointerdown', (ev) => {
-  if(ev.pointerType === 'mouse') return;
-  if(!pinch.p1){
-    pinch.p1 = { id: ev.pointerId, x: ev.clientX, y: ev.clientY };
-  } else if(!pinch.p2 && ev.pointerId !== pinch.p1.id){
-    pinch.p2 = { id: ev.pointerId, x: ev.clientX, y: ev.clientY };
-    pinch.active = true;
-    pinch.fired = false;
-
-    const d = dist(pinch.p1, pinch.p2);
-    pinch.startDist = d;
-
-    const a = baseIndexFromPoint(pinch.p1.x, pinch.p1.y);
-    const b = baseIndexFromPoint(pinch.p2.x, pinch.p2.y);
-    pinch.baseA = a;
-    pinch.baseB = b;
-    pinch.startYDiff = Math.abs(pinch.p1.y - pinch.p2.y);
-  }
-}, { passive:true });
-
-loopWrap.addEventListener('pointermove', (ev) => {
-  if(!pinch.active) return;
-  if(ev.pointerId === pinch.p1?.id){ pinch.p1.x = ev.clientX; pinch.p1.y = ev.clientY; }
-  if(ev.pointerId === pinch.p2?.id){ pinch.p2.x = ev.clientX; pinch.p2.y = ev.clientY; }
-
-  if(pinch.fired) return;
-
-  const d = dist(pinch.p1, pinch.p2);
-  const ydiff = Math.abs(pinch.p1.y - pinch.p2.y);
-  if(players.length < 2) return;
-
-  // must be between two circles close to each other vertically
-  if(pinch.baseA == null || pinch.baseB == null) return;
-  if(pinch.startYDiff > ROW_HEIGHT * 1.3) return;
-
-  // must be consecutive base indices (circular)
-  const m = players.length;
-  const a = pinch.baseA, b = pinch.baseB;
-  const consec = ((a + 1) % m === b) || ((b + 1) % m === a);
-  if(!consec) return;
-
-  // pull apart threshold
-  if((d - pinch.startDist) > 90 && (ydiff - pinch.startYDiff) > 40){
-    pinch.fired = true;
-    const insertAfter = ((a + 1) % m === b) ? a : b;
-    insertPlayerAfter(insertAfter);
-  }
-}, { passive:true });
-
-function resetPinch(){
-  pinch.active=false; pinch.p1=null; pinch.p2=null; pinch.fired=false; pinch.baseA=null; pinch.baseB=null;
-}
-loopWrap.addEventListener('pointerup', resetPinch, { passive:true });
-loopWrap.addEventListener('pointercancel', resetPinch, { passive:true });
-
-function dist(p1, p2){
-  const dx = p1.x - p2.x;
-  const dy = p1.y - p2.y;
-  return Math.sqrt(dx*dx + dy*dy);
-}
-
-function baseIndexFromPoint(x,y){
-  const el = document.elementFromPoint(x,y);
-  const row = el?.closest?.('.player-row');
-  if(!row) return null;
-  return Number(row.dataset.baseIndex);
-}
 
 // ---- Player ops ----
 function randomColor(){
@@ -674,13 +604,6 @@ function addPlayerAt(index){
   showToast('Spieler hinzugefügt.', 'ok');
 }
 
-function insertPlayerAfter(baseIndex){
-  const idx = clamp(baseIndex + 1, 0, players.length);
-  addPlayerAt(idx);
-  // open edit immediately for convenience
-  openPlayerModal(players[idx]?.id);
-  showToast('Spieler eingefügt.', 'ok');
-}
 
 function removePlayer(id){
   if(players.length === 0) return;
