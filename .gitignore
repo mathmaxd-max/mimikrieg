@@ -1,0 +1,16 @@
+# Only ignore truly temporary/system files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+*.tmp
+*.swp
+*~
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+
+# Track everything else locally (including Python scripts, workspace files, etc.)
