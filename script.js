@@ -139,6 +139,8 @@ const endBody = $('#endBody');
 const btnNewRound = $('#btnNewRound');
 const btnLobby = $('#btnLobby');
 
+const modalRules = $('#modalRules');
+
 // ---- Utilities ----
 const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
 
@@ -437,7 +439,7 @@ function renderPlayerLoop(){
   if(players.length === 0){
     const wrap = document.createElement('div');
     wrap.className = 'add-inline';
-    wrap.innerHTML = `<button class="add-circle" id="btnAddInline" aria-label="Spieler hinzufügen">+</button>`;
+    wrap.innerHTML = `<button class="add-circle" id="btnAddInline" aria-label="Spieler hinzufügen"><span>+</span></button>`;
     loopInner.appendChild(wrap);
     requestAnimationFrame(() => {
       const b = $('#btnAddInline');
@@ -473,11 +475,23 @@ function renderPlayerLoop(){
     `;
     loopInner.appendChild(row);
     attachSwipeHandlers(row);
+
+    // Add "+" button only after the last player in each block
+    if(baseIndex === m - 1){
+      const addRow = document.createElement('div');
+      addRow.className = 'player-row';
+      addRow.innerHTML = `
+        <button class="add-circle" aria-label="Spieler hinzufügen"><span>+</span></button>
+      `;
+      const addBtn = addRow.querySelector('.add-circle');
+      addBtn.addEventListener('click', () => openPlayerModal(null));
+      loopInner.appendChild(addRow);
+    }
   }
 
-  // Center scroll
+  // Center scroll (accounting for both players and add buttons)
   requestAnimationFrame(() => {
-    const block = m * ROW_HEIGHT;
+    const block = (m * ROW_HEIGHT) + ROW_HEIGHT; // Players + one "+" button per block
     const target = block * Math.floor(repeats/2);
     loopWrap.scrollTop = target;
   });
@@ -492,7 +506,7 @@ function escapeHtml(s){
 function keepLoopCentered(){
   if(players.length === 0) return;
   const m = players.length;
-  const block = m * ROW_HEIGHT;
+  const block = (m * ROW_HEIGHT) + ROW_HEIGHT; // Players + one "+" button per block
   const scrollTop = loopWrap.scrollTop;
   const maxScroll = loopInner.scrollHeight - loopWrap.clientHeight;
   // if near top or bottom, jump by one block
@@ -1324,6 +1338,7 @@ $('#btnAddPlayer').addEventListener('click', () => openPlayerModal(null));
 $('#btnOrder').addEventListener('click', () => { renderOrder(); openModal(modalOrder); });
 
 $('#btnAdvanced').addEventListener('click', () => { renderAdvanced(); openModal(modalAdvanced); });
+$('#btnRules').addEventListener('click', () => openModal(modalRules));
 
 toggleHints.addEventListener('change', () => {
   cfg.useHints = toggleHints.checked;
