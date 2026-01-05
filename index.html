@@ -32,7 +32,9 @@
               <div class="h">Spieler <span class="pill" id="playerCountPill">0</span></div>
               <div class="players-head-actions">
                 <button class="btn ghost" id="btnOrder">Reihenfolge</button>
+                <button class="btn ghost" id="btnAddBulk">+N</button>
                 <button class="btn ghost" id="btnAddPlayer">Hinzufügen</button>
+                <button class="btn ghost" id="btnClearPlayers">Leeren</button>
               </div>
             </div>
 
@@ -90,6 +92,19 @@
             <div class="row">
               <div class="toggle">
                 <div class="label">
+                  <div style="font-weight:650">Mimen Zusammenhalt</div>
+                  <div class="small">Wenn aktiviert, sehen alle Mimen die Liste der anderen Mimen in der Aufdeckphase.</div>
+                </div>
+                <label class="inline">
+                  <input type="checkbox" class="hidden" id="toggleImpostorsCohesion" />
+                  <span class="switch" aria-hidden="true"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="toggle">
+                <div class="label">
                   <div style="font-weight:650">Denkzeit-Timer</div>
                   <div class="small">Timer startet bei Tippen neu. Standardmäßig deaktiviert.</div>
                 </div>
@@ -109,6 +124,19 @@
                 <span class="small" style="margin-left:auto">Timer antippen zum Neustarten</span>
               </div>
               <div class="small" style="margin-top:6px; padding-left:2px">Gesamtzeit = 0 bedeutet kein Timer.</div>
+            </div>
+
+            <div class="row">
+              <div class="toggle">
+                <div class="label">
+                  <div style="font-weight:650">Automatisches Spielende</div>
+                  <div class="small">Wenn deaktiviert, endet das Spiel nicht automatisch, wenn alle Mimen rausgeworfen wurden.</div>
+                </div>
+                <label class="inline">
+                  <input type="checkbox" class="hidden" id="toggleAutoEnd" />
+                  <span class="switch" aria-hidden="true"></span>
+                </label>
+              </div>
             </div>
 
             <div class="divider"></div>
@@ -269,16 +297,6 @@
             <div class="divider"></div>
 
             <div class="kv">
-              <div class="k">Während des Spiels</div>
-              <div class="v">Automatische Endprüfungen</div>
-            </div>
-            <div class="small" style="margin-top:8px">
-              Die App endet automatisch, wenn alle Mimen rausgeworfen wurden, oder wenn die verbleibenden Mimen den verbleibenden Eingeweihten entsprechen.
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="kv">
               <div class="k">Erweiterte Mime-Hinweise-Einstellungen</div>
             </div>
             <div class="row" style="padding:8px 4px">
@@ -299,6 +317,21 @@
             <button class="btn ghost" data-close="modalOrder">Schließen</button>
           </div>
           <div class="sheet-body" id="orderBody"></div>
+        </div>
+      </div>
+
+      <div class="overlay hidden centered" id="modalBulkAdd" aria-hidden="true">
+        <div class="sheet">
+          <div class="sheet-head">
+            <div class="t">Mehrere Spieler hinzufügen</div>
+            <button class="btn ghost" data-close="modalBulkAdd">Schließen</button>
+          </div>
+          <div class="sheet-body">
+            <div class="small" style="margin-bottom:10px">Wie viele Spieler möchten Sie hinzufügen?</div>
+            <input class="input" id="bulkAddCount" type="number" min="1" max="50" value="5" inputmode="numeric" style="margin-bottom:12px" />
+            <div class="small" style="margin-bottom:10px">Spieler erhalten zufällige Namen und Farben.</div>
+            <button class="btn primary wide" id="btnBulkAddConfirm">Hinzufügen</button>
+          </div>
         </div>
       </div>
 

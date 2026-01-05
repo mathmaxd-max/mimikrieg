@@ -23,7 +23,9 @@ const DEFAULTS = {
   impostorCountWeights: null, // computed based on n
   posMode: 'constant', // 'constant' | 'binomial'
   posP: 0.50,
-  allowedHintStrengths: [true, true, true, true, true] // indexed 1-5, index 0 unused
+  allowedHintStrengths: [true, true, true, true, true], // indexed 1-5, index 0 unused
+  autoEndGame: true,
+  impostorsCohesion: false
 };
 
 /** @type {{id:string,name:string,color:string}[]} */
@@ -36,6 +38,9 @@ let wordbase = {
   rows: /** @type {any[]} */ ([]),
   count: 0
 };
+
+/** @type {string[]} */
+let namePool = [];
 
 let game = null; // active game object
 let revealIndex = 0;
@@ -63,6 +68,8 @@ const toastMsg = $('#toastMsg');
 const loopWrap = $('#loopWrap');
 const loopInner = $('#loopInner');
 const playerCountPill = $('#playerCountPill');
+const btnAddBulk = $('#btnAddBulk');
+const btnClearPlayers = $('#btnClearPlayers');
 
 const genreSummary = $('#genreSummary');
 const wordbaseStatus = $('#wordbaseStatus');
@@ -74,6 +81,8 @@ const toggleThink = $('#toggleThink');
 const thinkRow = $('#thinkRow');
 const thinkMinutes = $('#thinkMinutes');
 const thinkSeconds = $('#thinkSeconds');
+const toggleAutoEnd = $('#toggleAutoEnd');
+const toggleImpostorsCohesion = $('#toggleImpostorsCohesion');
 
 // Reveal
 const revealProgress = $('#revealProgress');
@@ -125,6 +134,9 @@ const hintStrengthToggles = $('#hintStrengthToggles');
 
 const modalOrder = $('#modalOrder');
 const orderBody = $('#orderBody');
+const modalBulkAdd = $('#modalBulkAdd');
+const bulkAddCount = $('#bulkAddCount');
+const btnBulkAddConfirm = $('#btnBulkAddConfirm');
 
 const modalVote = $('#modalVote');
 const voteList = $('#voteList');
@@ -235,7 +247,7 @@ function updateGenreSummary(){
 
 function ensureImpWeights(){
   const n = players.length;
-  const maxK = Math.ceil(n/2);
+  const maxK = Math.floor((n-1)/2);
   if(!cfg.impostorCountWeights || !Array.isArray(cfg.impostorCountWeights)){
     cfg.impostorCountWeights = new Array(maxK+1).fill(0);
     if(maxK >= 1) cfg.impostorCountWeights[1] = 90;
@@ -258,7 +270,7 @@ function normalizeImpWeights(){
   const sum = w.reduce((a,b)=>a+b,0);
   if(sum === 0){
     const n = players.length;
-    const maxK = Math.ceil(n/2);
+    const maxK = Math.floor((n-1)/2);
     cfg.impostorCountWeights = new Array(maxK+1).fill(0);
     if(maxK >= 1) cfg.impostorCountWeights[1] = 90;
     if(maxK >= 2) cfg.impostorCountWeights[2] = 10;
@@ -268,25 +280,58 @@ function normalizeImpWeights(){
 function sampleImpostorCount(){
   normalizeImpWeights();
   const w = cfg.impostorCountWeights;
-  const sum = w.reduce((a,b)=>a+b,0);
-  let r = Math.random() * sum;
-  for(let k=0;k<w.length;k++){
-    r -= w[k];
-    if(r <= 0) return k;
+  // If autoEndGame is true, k=0 is invalid, so skip it
+  const startK = (cfg.autoEndGame === true && w[0] > 0) ? 1 : 0;
+  const adjustedW = startK === 1 ? w.slice(1) : w;
+  const sum = adjustedW.reduce((a,b)=>a+b,0);
+  if(sum === 0){
+    // Fallback: return minimum valid count
+    return startK === 1 ? 1 : (w.length > 1 ? 1 : 0);
   }
-  return w.length-1;
+  let r = Math.random() * sum;
+  for(let k=0;k<adjustedW.length;k++){
+    r -= adjustedW[k];
+    if(r <= 0) return k + startK;
+  }
+  return adjustedW.length - 1 + startK;
 }
 
 function sampleOffset(n){
   if(cfg.posMode === 'constant') return Math.floor(Math.random() * n);
-  // binomial as specified: sum of n random numbers rounded to 1 if > p else 0
+  // binomial: generate offset with probability weights based on binomial distribution
+  // For offset k, weight is proportional to C(n-1, k) * p^k * (1-p)^(n-1-k)
+  // This means: low p favors small offsets, high p favors large offsets
   const p = clamp(cfg.posP, 0.01, 0.99);
-  let s = 0;
-  for(let i=0;i<n;i++){
-    const u = Math.random();
-    s += (u > p) ? 1 : 0;
+  const weights = [];
+  let sum = 0;
+  
+  // Calculate binomial coefficient helper
+  function binom(n, k) {
+    if(k > n || k < 0) return 0;
+    if(k === 0 || k === n) return 1;
+    k = Math.min(k, n - k);
+    let result = 1;
+    for(let i = 0; i < k; i++) {
+      result = result * (n - i) / (i + 1);
+    }
+    return result;
   }
-  return s % n;
+  
+  // Calculate weights for each offset position (0 to n-1)
+  for(let k = 0; k < n; k++) {
+    const binomCoeff = binom(n - 1, k);
+    const weight = binomCoeff * Math.pow(p, k) * Math.pow(1 - p, n - 1 - k);
+    weights.push(weight);
+    sum += weight;
+  }
+  
+  // Sample from weighted distribution
+  let r = Math.random() * sum;
+  for(let k = 0; k < n; k++) {
+    r -= weights[k];
+    if(r <= 0) return k;
+  }
+  return n - 1;
 }
 
 function pickRandom(arr){
@@ -355,6 +400,20 @@ function filterRowsByGenres(rows){
     if(matches) out.push(r);
   }
   return out;
+}
+
+// ---- Names loading ----
+async function loadNames(){
+  try{
+    const res = await fetch('./names.json', { cache: 'no-store' });
+    if(!res.ok) throw new Error('Could not fetch names.json');
+    const data = await res.json();
+    if(!Array.isArray(data)) throw new Error('names.json must be an array of strings');
+    namePool = data.filter(n => typeof n === 'string' && n.trim().length > 0);
+  }catch(e){
+    console.error('Failed to load names.json:', e);
+    namePool = [];
+  }
 }
 
 // ---- Genres loading ----
@@ -609,6 +668,15 @@ function nextDefaultName(){
   return base+' '+i;
 }
 
+function getRandomName(){
+  if(namePool.length === 0) return nextDefaultName();
+  const usedNames = new Set(players.map(p=>p.name.trim().toLowerCase()));
+  const available = namePool.filter(n => !usedNames.has(n.trim().toLowerCase()));
+  if(available.length > 0) return pickRandom(available);
+  // If all names are used, fall back to default naming
+  return nextDefaultName();
+}
+
 function addPlayerAt(index){
   const p = { id: uid(), name: nextDefaultName(), color: randomColor() };
   players.splice(index, 0, p);
@@ -628,6 +696,31 @@ function removePlayer(id){
   save();
   renderAll();
   showToast('Spieler entfernt.', 'warn');
+}
+
+function addBulkPlayers(count){
+  const num = clamp(Number(count) || 0, 1, 50);
+  if(num <= 0) return;
+  
+  for(let i = 0; i < num; i++){
+    const name = getRandomName();
+    const color = randomColor();
+    players.push({ id: uid(), name, color });
+  }
+  
+  ensureImpWeights();
+  save();
+  renderAll();
+  showToast(`${num} Spieler hinzugefügt.`, 'ok');
+}
+
+function clearAllPlayers(){
+  if(players.length === 0) return;
+  players = [];
+  ensureImpWeights();
+  save();
+  renderAll();
+  showToast('Alle Spieler entfernt.', 'warn');
 }
 
 // ---- Player modal ----
@@ -888,19 +981,23 @@ function movePlayer(id, dir){
 function renderAdvanced(){
   ensureImpWeights();
   const n = players.length;
-  const maxK = Math.ceil(n/2);
+  const maxK = Math.floor((n-1)/2);
   impMaxInfo.textContent = `max: ${maxK}`;
   impCountRows.innerHTML = '';
   for(let k=0;k<=maxK;k++){
     const w = cfg.impostorCountWeights[k] ?? 0;
+    const isK0Disabled = (k === 0 && cfg.autoEndGame === true);
     const wrap = document.createElement('div');
     wrap.className = 'imp-row';
+    if(isK0Disabled){
+      wrap.style.opacity = '0.5';
+    }
     wrap.innerHTML = `
       <div class="kv">
-        <div class="k">k = ${k}</div>
+        <div class="k">k = ${k}${isK0Disabled ? ' (nur ohne "Automatisches Spielende")' : ''}</div>
         <div class="v"><span data-w="${k}">${w}</span>%</div>
       </div>
-      <input type="range" min="0" max="100" step="1" value="${w}" data-k="${k}">
+      <input type="range" min="0" max="100" step="1" value="${w}" data-k="${k}" ${isK0Disabled ? 'disabled' : ''}>
     `;
     const r = wrap.querySelector('input[type="range"]');
     const label = wrap.querySelector('span[data-w]');
@@ -968,8 +1065,8 @@ function onCloseAdvanced(){
 
 // ---- Game flow ----
 function startGame(){
-  if(players.length < 2){
-    showToast('Mindestens 2 Spieler hinzufügen.', 'danger');
+  if(players.length < 3){
+    showToast('Mindestens 3 Spieler hinzufügen.', 'danger');
     return;
   }
   if(!wordbase.loaded || !wordbase.count){
@@ -1007,7 +1104,7 @@ function startGame(){
   const start = Math.floor(Math.random() * n);
 
   // decide impostor count
-  const k = clamp(sampleImpostorCount(), 0, Math.ceil(n/2));
+  const k = clamp(sampleImpostorCount(), 0, Math.floor((n-1)/2));
 
   // decide impostor indices relative to start
   const impostors = new Set();
@@ -1112,12 +1209,23 @@ function renderReveal(){
     revealRole.textContent = 'Mime';
     revealRole.style.color = 'rgba(255,59,48,.92)';
     revealWord.textContent = '';
+    let hintText = '';
     if(cfg.useHints){
       const impHint = game.impostorHints?.get(revealIndex) || game.hint || '';
-      revealHint.textContent = impHint ? ('Hinweis: ' + impHint) : 'Hinweis: (keine)';
+      hintText = impHint ? ('Hinweis: ' + impHint) : 'Hinweis: (keine)';
     } else {
-      revealHint.textContent = 'Hinweise sind deaktiviert.';
+      hintText = 'Hinweise sind deaktiviert.';
     }
+    // Show other impostors if cohesion is enabled
+    if(cfg.impostorsCohesion){
+      const otherImpostors = [...game.impostors].filter(i => i !== revealIndex).map(i => players[i]?.name ?? '(unbekannt)');
+      if(otherImpostors.length > 0){
+        hintText += (hintText ? '\n' : '') + 'Andere Mimen: ' + otherImpostors.join(', ');
+      } else {
+        hintText += (hintText ? '\n' : '') + 'Andere Mimen: (keine)';
+      }
+    }
+    revealHint.textContent = hintText;
   } else {
     revealRole.textContent = 'Eingeweihter';
     revealRole.style.color = 'rgba(243,245,255,.92)';
@@ -1255,6 +1363,8 @@ function kickSelected(){
 }
 
 function checkAutoEnd(){
+  if(!cfg.autoEndGame) return;
+  
   const aliveIdx = game.alive.map((a,i)=>a?i:-1).filter(i=>i>=0);
   const aliveImp = aliveIdx.filter(i => game.impostors.has(i)).length;
   const aliveCrew = aliveIdx.length - aliveImp;
@@ -1279,6 +1389,12 @@ function revealEndOverlay(){
   endTitle.textContent = 'Spiel beendet';
   const impNames = [...game.impostors].map(i => players[i]?.name ?? '(unbekannt)');
   const impList = impNames.length ? impNames.join(', ') : '(keine)';
+  
+  // Check if manually ended with all mimes eliminated
+  const aliveIdx = game.alive.map((a,i)=>a?i:-1).filter(i=>i>=0);
+  const aliveImp = aliveIdx.filter(i => game.impostors.has(i)).length;
+  const isManualWin = game.endedReason && game.endedReason.includes('Manuell') && aliveImp === 0;
+  
   // Show hint info in end screen
   let hintLine = '';
   if(cfg.useHints){
@@ -1293,6 +1409,9 @@ function revealEndOverlay(){
     }
   }
   const reasonLine = game.endedReason ? `<div class="small" style="margin-top:6px">Endbedingung: <span class="muted">${escapeHtml(game.endedReason)}</span></div>` : '';
+  const successFeedback = isManualWin ? `<div style="margin-top:10px; padding:12px; background:rgba(53,199,89,.15); border:1px solid rgba(53,199,89,.35); border-radius:12px; text-align:center">
+    <div style="font-weight:700; color:rgba(53,199,89,.95); font-size:16px">✓ Alle Mimen wurden erfolgreich eliminiert!</div>
+  </div>` : '';
 
   endBody.innerHTML = `
     <div class="imp-row" style="padding:14px 14px">
@@ -1300,6 +1419,7 @@ function revealEndOverlay(){
       <div style="font-weight:860; font-size:28px; margin-top:4px">${escapeHtml(game.word)}</div>
       ${hintLine}
       ${reasonLine}
+      ${successFeedback}
     </div>
     <div style="height:10px"></div>
     <div class="imp-row" style="padding:14px 14px">
@@ -1336,6 +1456,26 @@ document.addEventListener('click', (ev) => {
 $('#btnGenres').addEventListener('click', () => { renderGenres(); openModal(modalGenres); });
 $('#btnAddPlayer').addEventListener('click', () => openPlayerModal(null));
 $('#btnOrder').addEventListener('click', () => { renderOrder(); openModal(modalOrder); });
+btnAddBulk.addEventListener('click', () => {
+  bulkAddCount.value = '5';
+  openModal(modalBulkAdd);
+  setTimeout(() => bulkAddCount.focus(), 40);
+});
+btnClearPlayers.addEventListener('click', () => {
+  if(players.length === 0) return;
+  if(confirm('Möchten Sie wirklich alle Spieler entfernen?')){
+    clearAllPlayers();
+  }
+});
+btnBulkAddConfirm.addEventListener('click', () => {
+  const count = Number(bulkAddCount.value) || 0;
+  if(count < 1 || count > 50){
+    showToast('Bitte eine Zahl zwischen 1 und 50 eingeben.', 'danger');
+    return;
+  }
+  addBulkPlayers(count);
+  closeModal(modalBulkAdd);
+});
 
 $('#btnAdvanced').addEventListener('click', () => { renderAdvanced(); openModal(modalAdvanced); });
 $('#btnRules').addEventListener('click', () => openModal(modalRules));
@@ -1354,6 +1494,16 @@ toggleHintSame.addEventListener('change', () => {
 toggleThink.addEventListener('change', () => {
   cfg.thinkEnabled = toggleThink.checked;
   thinkRow.style.display = cfg.thinkEnabled ? 'block' : 'none';
+  save();
+});
+
+toggleAutoEnd.addEventListener('change', () => {
+  cfg.autoEndGame = toggleAutoEnd.checked;
+  save();
+});
+
+toggleImpostorsCohesion.addEventListener('change', () => {
+  cfg.impostorsCohesion = toggleImpostorsCohesion.checked;
   save();
 });
 
@@ -1476,6 +1626,8 @@ function renderAll(){
   hintSameRow.style.display = cfg.useHints ? 'block' : 'none';
   toggleThink.checked = cfg.thinkEnabled;
   thinkRow.style.display = cfg.thinkEnabled ? 'block' : 'none';
+  toggleAutoEnd.checked = cfg.autoEndGame !== false;
+  toggleImpostorsCohesion.checked = cfg.impostorsCohesion === true;
 
   // restore think time inputs
   const t = clamp(Number(cfg.thinkSeconds || 0), 0, 3600*10);
@@ -1488,6 +1640,7 @@ function renderAll(){
 }
 
 load();
+loadNames();
 loadGenres().then(() => {
   renderAll();
 });
