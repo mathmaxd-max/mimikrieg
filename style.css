@@ -1,4 +1,4 @@
-:root{
+﻿:root{
   --bg:#0b0d12;
   --panel:#111522;
   --panel2:#0f1320;
@@ -709,3 +709,62 @@ input[type="range"]{width: 100%}
   *{transition:none !important; animation:none !important; scroll-behavior:auto !important}
 }
 
+footer{
+  margin-top: 40px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--hair);
+}
+footer a{
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+footer a:hover{
+  color: var(--accent);
+}
+.cookie-banner{
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, rgba(17,21,34,.98), rgba(11,13,18,.98));
+  border-top: 1px solid var(--hair);
+  padding: 16px;
+  z-index: 1000;
+  box-shadow: 0 -10px 30px rgba(0,0,0,.5);
+  backdrop-filter: blur(10px);
+}
+.cookie-banner.hidden{
+  display: none;
+}
+.cookie-content{
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cookie-text{
+  flex: 1;
+}
+.cookie-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cookie-actions .btn{
+  flex: 1;
+  min-width: 120px;
+}
+@media (min-width: 600px){
+  .cookie-content{
+    flex-direction: row;
+    align-items: center;
+  }
+  .cookie-actions{
+    flex: 0 0 auto;
+  }
+  .cookie-actions .btn{
+    flex: 0 0 auto;
+  }
+}

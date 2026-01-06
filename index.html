@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
@@ -143,6 +143,16 @@
 
             <button class="btn primary wide" id="btnStart">Starten</button>
           </div>
+
+          <footer style="margin-top: 40px; padding: 12px 16px; border-top: 1px solid var(--hair);">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; font-size: 11px; color: var(--muted2);">
+              <a href="impressum.html">Impressum</a>
+              <span style="color: var(--hair);">•</span>
+              <a href="disclaimer.html">Disclaimer</a>
+              <span style="color: var(--hair);">•</span>
+              <a href="datenschutz.html">Datenschutz & Cookies</a>
+            </div>
+          </footer>
         </div>
       </section>
 
@@ -204,6 +214,25 @@
 
       <!-- TOAST -->
       <div class="toast" id="toast"><div class="msg" id="toastMsg"></div></div>
+
+      <!-- COOKIE CONSENT -->
+      <div class="cookie-banner hidden" id="cookieBanner" aria-hidden="true">
+        <div class="cookie-content">
+          <div class="cookie-text">
+            <div style="font-weight: 650; margin-bottom: 8px;">Cookie-Einstellungen</div>
+            <div class="small" style="line-height: 1.5;">
+              Diese Website verwendet LocalStorage, um Ihre Spieleinstellungen zu speichern. 
+              Durch die Nutzung dieser Website stimmen Sie der Verwendung von LocalStorage zu. 
+              Weitere Informationen finden Sie in unserer 
+              <a href="datenschutz.html" style="color: var(--accent); text-decoration: underline;">Datenschutzerklärung</a>.
+            </div>
+          </div>
+          <div class="cookie-actions">
+            <button class="btn primary" id="btnAcceptCookies">Akzeptieren</button>
+            <button class="btn ghost" id="btnRejectCookies">Ablehnen</button>
+          </div>
+        </div>
+      </div>
 
       <!-- MODALS -->
       <div class="overlay hidden" id="modalGenres" aria-hidden="true">

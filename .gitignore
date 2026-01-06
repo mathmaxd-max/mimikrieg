@@ -1,4 +1,4 @@
-# Only ignore truly temporary/system files
+﻿# Only ignore truly temporary/system files
 .DS_Store
 Thumbs.db
 desktop.ini

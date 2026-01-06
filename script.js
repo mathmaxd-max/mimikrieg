@@ -1,4 +1,4 @@
-// ---- Wordbase loading (TSV format) ----
+﻿// ---- Wordbase loading (TSV format) ----
 
 // ---- State ----
 const LS_KEY = 'mimikrieg_app_v1';
@@ -1639,10 +1639,60 @@ function renderAll(){
   renderPalette();
 }
 
+// ---- Cookie Consent ----
+const COOKIE_CONSENT_KEY = 'mimikrieg_cookie_consent';
+
+function checkCookieConsent(){
+  const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
+  if(consent === null){
+    // Show cookie banner
+    const banner = $('#cookieBanner');
+    if(banner){
+      banner.classList.remove('hidden');
+      banner.setAttribute('aria-hidden', 'false');
+    }
+  }
+}
+
+function acceptCookies(){
+  localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+  const banner = $('#cookieBanner');
+  if(banner){
+    banner.classList.add('hidden');
+    banner.setAttribute('aria-hidden', 'true');
+  }
+  showToast('Cookie-Einstellungen gespeichert.', 'ok');
+}
+
+function rejectCookies(){
+  localStorage.setItem(COOKIE_CONSENT_KEY, 'rejected');
+  const banner = $('#cookieBanner');
+  if(banner){
+    banner.classList.add('hidden');
+    banner.setAttribute('aria-hidden', 'true');
+  }
+  // Clear localStorage data if user rejects
+  localStorage.removeItem(LS_KEY);
+  showToast('Cookie-Einstellungen gespeichert. Lokale Daten wurden gelöscht.', 'warn');
+}
+
+const cookieBanner = $('#cookieBanner');
+const btnAcceptCookies = $('#btnAcceptCookies');
+const btnRejectCookies = $('#btnRejectCookies');
+
+if(btnAcceptCookies){
+  btnAcceptCookies.addEventListener('click', acceptCookies);
+}
+if(btnRejectCookies){
+  btnRejectCookies.addEventListener('click', rejectCookies);
+}
+
+// ---- Bootstrap ----
 load();
 loadNames();
 loadGenres().then(() => {
   renderAll();
 });
 loadWordbase();
+checkCookieConsent();
 
