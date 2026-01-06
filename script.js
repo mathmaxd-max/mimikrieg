@@ -1,4 +1,4 @@
-﻿// ---- Wordbase loading (TSV format) ----
+// ---- Wordbase loading (TSV format) ----
 
 // ---- State ----
 const LS_KEY = 'mimikrieg_app_v1';
